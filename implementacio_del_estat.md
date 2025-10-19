@@ -59,3 +59,25 @@ $$
 B_{total} = B - C - Pen
 $$
 
+## Possibles solucions inicials
+
+1. Solució bàsica: __Assignar a cada camió les peticions més properes__ (de distància) fins a omplir la seva capacitat, _sense tenir en compte la penalització per peticions pendents._ Si un camió no pot atendre dues peticions (ja sigui per distància o per capacitat), només se li assigna una petició. Si un camió no pot atendre cap petició, torna al centre sense fer cap servei. Les peticions desateses es deixen pendents per al dia següent.
+2. Solució complexa: Les peticions es prioritzen segons la seva __penalització potencial__ (pèrdua de preu per dia pendent). El camió atén primer les peticions amb la penalització més __alta__, sempre que estiguin dins de la seva capacitat i distància. Després, si és compatible per distància i capacitat, s'assigna la petició més propera geogràficament, i en cas d'empat, la que tingui més dies pendents, i en cas d'empat, la que impliqui menys distància de retorn al centre assignat al camió. Si això no és possible, el camió torna al centre havent atès la petició amb la penalització més alta. Si un camió no és compatible amb cap petició, retorna al seu centre sense fer cap servei. Les peticions desateses es deixen pendents per al dia següent.
+
+## Possibles operadors
+
+Per entendre-ho, cal recordar que:
+
+- Cada centre té un __ÚNIC__ camió assignat.
+- Cada camió té una capacitat màxima de 2 dipòsits per viatge.
+- Cada petició només pot ser atesa per UN camió en un dia.
+- Cada camió pot fer diversos viatges (v) en un dia fins a esgotar la seva capacitat, distància màxima o les peticions disponibles.
+- Cada viatge comença i acaba al centre assignat al camió.  
+
+Alguns possibles operadors per modificar l'estat actual són:
+
+1. __Swap de centres per petició:__ Intercanviar les peticions assignades entre dos camions que pertanyen a diferents centres, és a dir, si el camió A del centre C1 té assignada la petició P1 i el camió B del centre C2 té assignada la petició P2, es poden intercanviar aquestes peticions entre els dos camions.
+2. __Moure peticions d'un viatge a un altre:__ Transferir una petició d'un viatge d'un camió a un altre viatge del mateix camió, sempre que es compleixin les restriccions de capacitat i distància.
+3. __Swap de peticions entre viatges:__ Intercanviar peticions entre dos viatges diferents, ja sigui del mateix camió o de camions diferents, sempre que es compleixin les restriccions de capacitat i distància.
+4. __Reordenar ordre de servei en un viatge:__ Canviar l'ordre en què es serveixen les peticions dins d'un mateix viatge per optimitzar la distància recorreguda, si el camió atén dues peticions en un viatge.
+5. __Reemparellar peticions dins d’un mateix camió:__ dividir un viatge amb dues aturades en dos viatges d’una aturada i recombinar-lo amb altres viatges d’una aturada del mateix camió, si això redueix la distància total recorreguda.

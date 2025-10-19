@@ -1,0 +1,3 @@
+class CamionsOperator(object):
+    pass
+
