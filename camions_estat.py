@@ -12,54 +12,69 @@ class StateRepresentation(object):
         - camions: llista de llistes de viatges per camió, on cada viatge és una llista de peticions ateses
         '''
         self.params = params
-        self.camions = []  #CALDRÀ FER-HO MÉS EFICIENT !!¡!¡
 
-    def es_possible(self) -> bool:
+    def heuristica(self) -> float:
         """
-        Comprova si l'estat actual compleix totes les restriccions:
-        - Cap camió supera els km màxims diaris (self.params.km_max)
-        - Cap camió supera el nombre màxim de viatges diaris (self.params.viatges_max)
-        - Cap viatge porta més de 2 peticions
-        - Cap petició s'atén més d'una vegada
+        B_total = B - C - Pen
+        On:
+        - B = Ingressos dels dipòsits servits avui
+        - C = Cost total dels km recorreguts
+        - Pen = Penalització per peticions no servides avui
+        
+        Retorna: -B_total (per minimitzar, que equival a maximitzar B_total)
         """
-        peticions_atendides: Set[int] = set()
-
-        for camio in self.camions:
-        #CALDRÀ FER-HO MÉS EFICIENT !!¡!¡
-            km_total = 0
-            viatges_count = 0
-
-            for viatge in camio:
-                viatges_count += 1
-                if viatges_count > self.params.viatges:
-                    return False  # Supera el nombre màxim de viatges
-
-                if len(viatge) > 2:
-                    return False  # Supera el nombre màxim de peticions per viatge
-
-                # Calcular km del viatge (suposant que tenim una funció per això)
-                km_viatge = self.calcula_km_viatge(viatge)
-                km_total += km_viatge
-
-                if km_total > self.params.km:
-                    return False  # Supera els km màxims diaris
-
-                for peticio in viatge:
-                    if peticio in peticions_atendides:
-                        return False  # Petició ja atesa
-                    peticions_atendides.add(peticio)
-
-        return True 
-
+        ingressos = self.calcular_ingressos_servits()
+        cost_km = self.calcular_cost_km()
+        penalitzacio = self.calcular_penalitzacio_pendents()
     
-    def manhattan(self, c1, c2):
+        benefici_total = ingressos - cost_km - penalitzacio
+    
+        return -benefici_total  # ha de ser negatiu
+    
+    def calcular_ingressos_servits(self) -> float:
+        """
+        Calcula el benefici perdut per les peticions no servides.
+        Sumatori de les peticions servides avui pel seu factor de preu
+        """
+        benefici_perdut = 0.0
+        # Implementar càlcul del benefici perdut
+        return benefici_perdut
+    
+    def calcular_cost_km(self) -> float:
+        """
+        Calcula el cost total dels km recorreguts per tots els camions.
+        És el cost per quilòmetre recorregut multiplicat pels km totals de tots els viatges
+        """
+        cost_km = 0.0
+        # Implementar càlcul del cost de km totals
+        return cost_km
+    
+    def calcular_penalitzacio_pendents(self) -> float:
+        """
+        Calcula la penalització per les peticions no servides avui.
+        És el sumatori de les penalitzacions no ateses el dia pel que porten pendent.
+        Cada petició pendent afegeix una penalització segons els dies que porta pendent.
+        """
+        penalitzacio = 0.0
+        # Implementar càlcul de la penalització per peticions pendents
+        return penalitzacio
+    
+    def _factor_de_preu(self, dies: int) -> float: #f(d) del meu escrit :)
+        """
+        Factor de preu en funció dels dies que han passat per petició.
+        Els dies són estrictament positius.
+        """
+        if dies == 0:
+            return 1.02
+        else: return max(0, 1-0.02 * dies)
+        
+    
+    def _manhattan(self, c1, c2):
         """
         Distància Manhattan entre dues coordenades (x, y)
         """
         return abs(c1[0] - c2[0]) + abs(c1[1] - c2[1])
     
-    def apply_action(self, action: CamionsOperator) -> 'StateRepresentation':
-        pass
 
     def __eq__(self, other):
         return isinstance(other, StateRepresentation) and self.params == other.params

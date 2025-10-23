@@ -1,8 +1,8 @@
 class ProblemParameters(object):
-    def __init__(self, km, viatges, valor, cost_km, gasolineres, centres):
+    def __init__(self, km, n_viatges, valor, cost_km, gasolineres, centres):
         # límits i costos 
         self.km = km                    # Màxim km per camió al dia 
-        self.viatges = viatges          # Màxim viatges per camió al dia 
+        self.n_viatges = n_viatges      # Màxim viatges per camió al dia 
         self.valor = valor              # Valor base del dipòsit (€)
         self.cost_km = cost_km          # Cost per km recorregut (€/km)
         
