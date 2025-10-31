@@ -90,7 +90,7 @@ class StateRepresentation(object):
 
         for i_peticio in viatge:
             id_gasolinera = self.gasolinera_per_peticio[i_peticio] # Tenim el índex de la petició, obtenim la gasolinera associada
-            gasolinera = self.params.gasolineres[id_gasolinera] # Obtenim l'objecte Gasolinera
+            gasolinera = self.params.gasolineres.gasolineres[id_gasolinera] # Obtenim l'objecte Gasolinera
             coords_gasolinera = (gasolinera.cx, gasolinera.cy)  # Obtenim les coordenades de la gasolinera asociada a la petició
             km_totals += self._manhattan(coords_actuals, coords_gasolinera) # Afegim als quilòmetres totals la distància que acabem de recórrer
             coords_actuals = coords_gasolinera  # Actualitzem les coordenades actuals del camió

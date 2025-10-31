@@ -9,5 +9,5 @@ centres = CentresDistribucio(num_centres=5, multiplicitat=1, seed=5678)
 
 params = ProblemParameters( km=640, n_viatges=5, valor=1000, cost_km=2, gasolineres=gasolineres, centres=centres)
 initial_state = generate_initial_state(params)
-# n =simulated_annealing(CamionsProblema(initial_state))
-n = hill_climbing(CamionsProblema(initial_state))
+n =simulated_annealing(CamionsProblema(initial_state))
+# n = hill_climbing(CamionsProblema(initial_state))
