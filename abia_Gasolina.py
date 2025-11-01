@@ -43,8 +43,7 @@ class Gasolineres(object):
                 self.genera_peticions()
             )
             self.gasolineres.append(gasolinera)
-    def __iter__(self):
-        return iter(self.gasolineres)
+
 
 
     def genera_peticions(self) -> List[int]:

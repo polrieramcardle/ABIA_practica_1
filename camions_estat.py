@@ -19,7 +19,7 @@ class StateRepresentation(object):
         self.gasolinera_per_peticio = [] # gasolinera associada a cada petició, el índex de la llista indica el id de la petició, el valor de la llista indica la gasolinera associada
         
         i_global = 0
-        for id_gas, gasolinera in enumerate(params.gasolineres): # Recorrem la llista de gasolineres retornant parelles, el índex i el objecte
+        for id_gas, gasolinera in enumerate(params.gasolineres.gasolineres): # Recorrem la llista de gasolineres retornant parelles, el índex i el objecte
             for dies in gasolinera.peticions: # Per cada gasolinera, iterem sobre totes les seves peticions pendents
                 self.peticions_info.append(dies) # Afegim els dies pendents de la petició a la llista
                 self.gasolinera_per_peticio.append(id_gas) # Afegim la gasolinera associada a la petició
@@ -202,6 +202,39 @@ class StateRepresentation(object):
 
     def __eq__(self, other):
         return isinstance(other, StateRepresentation) and self.params == other.params
+    
+    def __str__(self):
+        output = []
+        output.append(f"=== ESTAT DELS CAMIONS ===\n")
+        output.append(f"Benefici total: {-self.heuristica():.2f}€\n")
+        output.append(f"Ingressos: {self.calcular_ingressos_servits():.2f}€")
+        output.append(f"Cost km: {self.calcular_cost_km():.2f}€")
+        output.append(f"Penalització: {self.calcular_penalitzacio_pendents():.2f}€\n")
+        
+        for id_camio, camio in enumerate(self.camions):
+            centre = self.params.centres.centres[id_camio]
+            output.append(f"\n--- Camió {id_camio} (Centre: {centre.cx}, {centre.cy}) ---")
+            
+            if not camio:
+                output.append("  Cap viatge assignat")
+                continue
+                
+            for id_viatge, viatge in enumerate(camio):
+                km_viatge = self._calcular_km_viatge(id_camio, viatge)
+                output.append(f"  Viatge {id_viatge}: {len(viatge)} peticions, {km_viatge:.2f} km")
+                
+                for id_peticio in viatge:
+                    id_gas = self.gasolinera_per_peticio[id_peticio]
+                    gas = self.params.gasolineres.gasolineres[id_gas]
+                    dies = self.peticions_info[id_peticio]
+                    output.append(f"    - Petició {id_peticio}: Gasolinera {id_gas} ({gas.cx}, {gas.cy}), {dies} dies pendents")
+        
+        peticions_no_servides = len(self.peticions_info) - len(self.peticions_servides)
+        output.append(f"\nPeticions servides: {len(self.peticions_servides)}/{len(self.peticions_info)}")
+        output.append(f"Peticions pendents: {peticions_no_servides}")
+        
+        return "\n".join(output)
+
     
 def generate_greedy_initial_state(params: ProblemParameters) -> StateRepresentation:
     """
