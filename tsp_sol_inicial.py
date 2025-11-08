@@ -10,7 +10,6 @@ import numpy as np
 from timeit import timeit
 @dataclasses.dataclass
 
-
 class ProblemParameters:
     gasolineres: Gasolineres
     centres: CentresDistribucio
@@ -156,3 +155,4 @@ plt.title('Distribució dels temps d\'execució')
 plt.ylabel('Temps (segons)')
 plt.grid(True, alpha=0.3)
 plt.show()
+
