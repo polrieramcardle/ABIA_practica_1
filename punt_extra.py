@@ -18,7 +18,7 @@ import time
 gasolineres = Gasolineres(num_gasolineres=100, seed=1234)
 centres = CentresDistribucio(num_centres=10, multiplicitat=1, seed=1234)
 
-# Paràmetres del problema (segons els teus experiments)
+# Paràmetres del problema (segons els  teus experiments)
 params = ProblemParameters(
     km=640,           # Màxim km per camió
     n_viatges=5,      # Màxim viatges per camió

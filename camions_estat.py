@@ -2,7 +2,7 @@ from camions_parametres import ProblemParameters
 from camions_operadors import CamionsOperator
 from typing import List, Set, Generator
 from abia_Gasolina import Gasolineres, Gasolinera
-from camions_operadors import swapCentres, mourePeticio
+from camions_operadors import swapCentres, mourePeticio, swapPeticions
 import random
 
 
@@ -212,6 +212,15 @@ class StateRepresentation(object):
                         if id_camio_desti != id_camio_origen:
                             yield mourePeticio(id_peticio, id_camio_origen, id_camio_desti)
 
+        # Generar operadors swapPeticions per cada parella de peticions en camions diferents
+        # for id_camio1 in range(num_camions):
+        #     for viatge1 in self.camions[id_camio1]:
+        #         for id_peticio1 in viatge1:
+        #             for id_camio2 in range(id_camio1 + 1, num_camions):
+        #                 for viatge2 in self.camions[id_camio2]:
+        #                     for id_peticio2 in viatge2:
+        #                         yield swapPeticions(id_peticio1, id_camio1, id_peticio2, id_camio2)
+
         return self.generate_all_actions()
 
     def generate_actions_lazy(self) -> Generator['CamionsOperator', None, None]:
@@ -236,7 +245,7 @@ class StateRepresentation(object):
                         yield swapCentres(c1, c2) # Retornem l'acció com a generador
 
             # === Moure una petició entre camions ===
-            else:  # Si el tipus d'acció és mourePeticio
+            elif tipus == 'mourePeticio':  # Si el tipus d'acció és mourePeticio
                 id_camio_origen = random.randint(0, num_camions - 1) # Seleccionem un camió origen aleatòriament
                 if not self.camions[id_camio_origen]: # Si el camió origen no té viatges assignats, continuem al següent iteració
                     continue
@@ -265,7 +274,27 @@ class StateRepresentation(object):
                     accio = ('mourePeticio', id_peticio, id_camio_origen, id_camio_desti) # Creem una tupla representant l'acció
                     if accio not in actions_generades: # Si l'acció no ha estat generada abans
                         actions_generades.add(accio) # Afegim l'acció al set d'accions generades
-                        yield mourePeticio(id_peticio, id_camio_origen, id_camio_desti) # Retornem l'acció com a generador
+                        # yield mourePeticio(id_peticio, id_camio_origen, id_camio_desti) # Retornem l'acció com a generador
+                        
+            # elif tipus == 'swapPeticions':  # Si el tipus d'acció és swapPeticions
+            #     id_camio1, id_camio2 = random.sample(range(num_camions), 2) # Seleccionem dos camions diferents aleatòriament
+            #     if not self.camions[id_camio1] or not self.camions[id_camio2]: # Si algun dels camions no té viatges assignats, continuem
+            #         continue
+
+            #     viatge1 = random.choice(self.camions[id_camio1]) # Seleccionem un viatge aleatori del primer camió
+            #     viatge2 = random.choice(self.camions[id_camio2]) # Seleccionem un viatge aleatori del segon camió
+
+            #     if not viatge1 or not viatge2: # Si algun dels viatges està buit, continuem
+            #         continue
+
+            #     id_peticio1 = random.choice(viatge1) # Seleccionem una petició aleatòria del primer viatge
+            #     id_peticio2 = random.choice(viatge2) # Seleccionem una petició aleatòria del segon viatge
+
+            #     accio = ('swapPeticions', id_peticio1, id_camio1, id_peticio2, id_camio2) # Creem una tupla representant l'acció
+            #     if accio not in actions_generades: # Si l'acció no ha estat generada abans
+            #         actions_generades.add(accio) # Afegim l'acció al set d'accions generades
+            #         yield swapPeticions(id_peticio1, id_camio1, id_peticio2, id_camio2) # Retornem l'acció com a generador
+                
         return self.generate_actions_lazy() # Retornem el generador d'accions
 
     def __eq__(self, other):
