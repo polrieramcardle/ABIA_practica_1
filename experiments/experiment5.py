@@ -1,8 +1,8 @@
 from aima3.search import hill_climbing
-from camions_problema import CamionsProblema
-from camions_parametres import ProblemParameters
-from camions_estat import generate_greedy_initial_state
-from abia_Gasolina import Gasolineres, CentresDistribucio
+from implementacio.camions_problema import CamionsProblema
+from implementacio.camions_parametres import ProblemParameters
+from implementacio.camions_estat import generate_greedy_initial_state
+from implementacio.abia_Gasolina import Gasolineres, CentresDistribucio
 import time
 
 # ----------------------------------------

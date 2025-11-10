@@ -1,8 +1,8 @@
-from camions_parametres import ProblemParameters
-from camions_operadors import CamionsOperator
+from .camions_parametres import ProblemParameters
+from .camions_operadors import CamionsOperator
 from typing import List, Set, Generator
-from abia_Gasolina import Gasolineres, Gasolinera
-from camions_operadors import swapCentres, mourePeticio, swapPeticions
+from .abia_Gasolina import Gasolineres, Gasolinera
+from .camions_operadors import swapCentres, mourePeticio, swapPeticions
 import random
 
 

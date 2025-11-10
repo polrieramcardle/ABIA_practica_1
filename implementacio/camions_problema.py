@@ -1,7 +1,7 @@
 from typing import Generator
-from camions_operadors import CamionsOperator
+from .camions_operadors import CamionsOperator
 from aima3.search import Problem
-from camions_estat import StateRepresentation
+from .camions_estat import StateRepresentation
 
 class CamionsProblema(Problem):
     '''

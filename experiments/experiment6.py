@@ -1,12 +1,12 @@
 from aima3.search import hill_climbing
-from camions_problema import CamionsProblema
-from camions_parametres import ProblemParameters
-from camions_estat import generate_greedy_initial_state, generate_initial_state, generate_empty_initial_state
-from abia_Gasolina import Gasolineres, CentresDistribucio
+from implementacio.camions_problema import CamionsProblema
+from implementacio.camions_parametres import ProblemParameters
+from implementacio.camions_estat import generate_greedy_initial_state, generate_initial_state, generate_empty_initial_state
+from implementacio.abia_Gasolina import Gasolineres, CentresDistribucio
 import time
 
 # ========================================
-# EXPERIMENT ESPECIAL
+# EXPERIMENT 6
 # ========================================
 # Configuració segons l'enunciat:
 # - 10 centres de distribució
@@ -23,7 +23,7 @@ params = ProblemParameters(
     km=640,           # Màxim km per camió
     n_viatges=5,      # Màxim viatges per camió
     valor=1000,       # Valor base del dipòsit (€)
-    cost_km=2,        # Cost per km recorregut (€/km)
+    cost_km=2,        # Cost per km recorregut (€/km) --> Això és el que s'ha d'anar canviant
     gasolineres=gasolineres,
     centres=centres
 )
@@ -116,3 +116,4 @@ print(f"{'='*70}")
 
 # Opcional: mostra la solució completa per debugar
 # print("\n" + str(solucio))
+
