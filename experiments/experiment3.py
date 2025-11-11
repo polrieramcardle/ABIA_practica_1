@@ -30,7 +30,7 @@ params_template = {
 
 # ----------------------------------------
 # Espai de paràmetres per simulated annealing
-# (fes-lo petit per proves, gran per execucions llargues)
+# (petit per proves ràpides, llarg per experiments reals)
 # ----------------------------------------
 limits = [20000, 50000]           # prova amb menys valors per començar
 ks = [1, 20]
