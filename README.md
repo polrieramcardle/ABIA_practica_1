@@ -1,123 +1,66 @@
-# Planificació setmanal pràctica:
-## Primera setmana: Presa de contacte amb el problema i implementació de l’estat (10 a 19 d’octubre)
+# 🔍 Pràctica de Cerca Local — ABIA (UPC 2025/2026)
 
-El primer que haureu de fer és reflexionar sobre el problema que descriu l’enunciat i plantejar-vos les mateixes preguntes que us fèieu en els problemes de la primera sessió de pràctiques:
+Aquest projecte correspon a la **Pràctica de Búsqueda Local** de l’assignatura *Algorismes Bàsics per la Intel·ligència Artificial (ABIA)* del grau en Intel·ligència Artificial de la UPC. L’objectiu és aplicar tècniques de **cerca local** per resoldre un problema de **planificació de rutes de distribució de combustible**, on diverses cisternes han d’abastir un conjunt de gasolineres de manera eficient.
 
-- **Quins elements intervenen en el problema?**
-- **Quin és l’espai de cerca?**
-- **Quina mida té l’espai de cerca?**
-- **Què és un estat inicial?**
-- **Quines condicions compleix un estat final?**
-- **Quins operadors permeten modificar els estats?**
-- **Quin factor de ramificació tenen els operadors de canvi d’estat?**
 
-A partir de les respostes a aquestes preguntes, us podeu plantejar què necessitareu per implementar la pràctica amb les classes de l’AIMA.  
-Fixeu-vos que vosaltres **no heu d’implementar els algoritmes**, sinó que heu d’identificar i implementar els elements que aquests necessiten.  
-Aquests elements són els que s’han explicat a classe de teoria: **estat**, **operadors de cerca** i **funció heurística**.
+## 🧠 Objectius
 
 ---
 
-### Representació de l’estat
+## 🧩 Descripció del problema
 
-Un primer exercici consisteix a pensar **quina estructura de dades** heu d’implementar per representar l’estat.  
-És fonamental pensar la representació tenint en compte **l’eficiència espacial i temporal**, ja que la cerca generarà una gran quantitat d’estats.
+La pràctica aborda el **problema de planificació de rutes per a la distribució de combustible** a una xarxa de gasolineres, utilitzant **algoritmes de cerca local** per trobar solucions eficients dins d’un espai de possibilitats molt ampli. L’objectiu és **optimitzar el conjunt de viatges realitzats per les cisternes**, de manera que es **maximitzi el benefici global de l’empresa** i alhora es **minimitzi la distància total recorreguda** i, per tant, el cost associat.
 
-A partir d’aquest plantejament previ, hauríeu de començar a plantejar-vos **la implementació de la classe que representa l’estat**.  
-La implementació de l’estat inclou decidir **quina estructura de dades és més adequada** per representar els elements del problema.  
-Com ja s’ha esmentat, aquesta representació hauria de ser **eficient**, ja que l’exploració generarà un gran nombre d’estats.
+El sistema ha de decidir **quines peticions de subministrament s’han d’atendre cada dia**, **com s’han d’assignar als camions** i **en quin ordre s’han de servir** per complir amb les limitacions de capacitat, temps i distància. Cada cisterna només pot fer un nombre màxim de viatges i quilòmetres diaris, i cada gasolinera pot tenir diverses peticions pendents amb prioritats diferents segons el temps d’espera.
 
-Per guanyar **eficiència espacial**, és una bona idea declarar com a **estàtiques** les parts de la representació que no canvien, de manera que es comparteixin entre totes les instàncies.
+A més de trobar una distribució factible, la pràctica busca **avaluar diferents estratègies heurístiques**, **formes d’inicialització de la solució** i **tipus d’operadors**, comparant-ne els resultats tant en qualitat com en temps d’execució. Per això, s’apliquen i analitzen els algoritmes **Hill Climbing** i **Simulated Annealing**, observant com responen davant canvis en els paràmetres del problema (nombre de centres, gasolineres, costos o restriccions).
 
----
-
-### Generació de la solució inicial
-
-Haureu d’implementar **constructors** que generin la solució inicial.  
-L’enunciat demana que busqueu **almenys dues estratègies** per generar-la.
-
-Heu de pensar en diversos aspectes sobre com generar aquesta solució inicial, com ara **quin és el cost** de generar-la i **com n’és de bona**.
-
-De cara als experiments, és interessant observar **com influeix la qualitat de la solució inicial** en el resultat de la cerca.  
-Per exemple, podeu utilitzar una estratègia que generi **solucions molt dolentes** i una altra que, **segons algun criteri, sigui millor**, i analitzar si el nombre de passos fins a arribar a la solució final i la seva qualitat són diferents.
+En conjunt, el treball combina la **formulació formal d’un problema d’optimització** amb la seva **resolució experimental**, oferint una visió pràctica de com els mètodes de cerca local poden aplicar-se a casos reals de logística i planificació de recursos.
 
 ---
 
-### Implementació dels operadors de cerca
+## 🧱 Estructura del projecte
 
-Dins de la implementació de l’estat també s’inclou **la implementació dels operadors de cerca**.  
-Heu d’analitzar **quin conjunt d’operadors és més convenient**.
-
-Observeu que el **factor de ramificació** és important, perquè influeix directament en el temps necessari per trobar la solució.  
-
-També heu de tenir en compte que uns operadors que no generin prou alternatives poden donar lloc a **solucions pitjors**, ja que no permetrien explorar correctament l’espai de cerca.
-
-Penseu bé **quines operacions** es poden fer dins del problema.  
-De vegades en calen diverses per poder accedir a tot l’espai de cerca, i també pot haver-hi **conjunts alternatius d’operadors**.
-
-## Segona setmana: Implementació de les classes per a l’AIMA (del 20 al 26 d’octubre)
-
-A aquestes alçades ja hauríeu de tenir implementat l’estat del problema juntament amb els seus operadors i les estratègies d’inici de la cerca.
-
-Ara necessiteu implementar la resta de classes que l’AIMA utilitza per resoldre el problema.
-
-Implementar la classe que genera els estats successors és senzill: només heu de generar, per a un estat, tots els estats accessibles possibles. Com que ja tindreu implementats els operadors, només cal decidir com es fa la generació dels nodes aplicant-los. L’ordre en què es generen és indiferent, només cal assegurar-se que per a cada node es generin tots els successors accessibles. Recordeu que l’estratègia per generar els nodes ha de ser diferent per a **Hill Climbing** i per a **Simulated Annealing**.  
-Per a Hill Climbing haureu de generar totes les possibles aplicacions dels operadors a l’estat actual, mentre que per a Simulated Annealing haureu d’escollir a l’atzar un operador i generar només un successor aplicant aquest operador amb paràmetres també aleatoris.
-
-Amb això n’hi ha prou, ja que és l’algoritme de cerca el que s’encarregarà de fer l’exploració i decidir quins nodes s’expandeixen.
-
-La classe que comprova si s’ha arribat a un estat final és la més senzilla de totes. En el cas de la cerca local, no és possible saber si s’ha arribat a l’estat final, per tant, la funció que implementa aquesta classe ha de retornar sempre **fals**. Podeu copiar aquesta classe de qualsevol dels exemples de cerca local que teniu, ja que totes són iguals.
-
-La classe en què haureu de pensar més és la que calcula la **funció heurística**.
-
-Heu de reflexionar sobre què mesuren les funcions heurístiques que descriu l’enunciat i decidir com es calculen a partir de l’estat.
-
-Recordeu que les funcions heurístiques que implementeu s’han de **minimitzar**. Penseu també que la diferència entre **maximitzar** i **minimitzar** és simplement un canvi de signe.
+- `README.md` — Resum del projecte i instruccions d’ús.
+- `INFORME.md` — Arxiu de generació de l'informe
+- `INFORME.pdf` — Informe final amb resultats i conclusions.
+- `documentacio/` — Documents de referència i explicacions addicionals. Conté l’enunciat oficial i la descripció de la implementació de l’estat.
+- `implementacio/` — Codi font principal del problema i la seva resolució.
+  - `abia_Gasolina.py` — Llibreria base facilitada amb les classes del laboratori.
+  - `camions.py` — Gestió general de camions i centres de distribució.
+  - `camions_estat.py` — Representació de l’estat del problema (assignacions, peticions, etc.).
+  - `camions_operadors.py` — Definició dels operadors per generar estats successors.
+  - `camions_parametres.py` — Paràmetres globals del problema (costos, límits, constants...).
+  - `camions_problema.py` — Integració de totes les parts amb els algorismes de cerca.
+  - `__init__.py` — Fitxer d’inicialització del mòdul Python.
+- `experiments/` — Scripts per executar els experiments i generar resultats: Inclou proves amb *Hill Climbing*, *Simulated Annealing* i escalabilitat.
+  - `resultats/` — Fitxers i gràfics generats pels experiments.
 
 ---
 
-## Tercera setmana: Experiments (del 24 al 29 d’octubre i del 6 al 9 de novembre)
+## Dependències
 
-Durant aquesta setmana hauríeu de tenir ja una implementació funcional de la pràctica i començar a fer **experiments**.
+Aquest projecte s’ha desenvolupat en **Python 3.12+** i requereix les següents llibreries:
 
-Heu de pensar en els diferents escenaris que es poden plantejar amb els elements que teniu.  
-Tingueu en compte que l’objectiu dels experiments és obtenir informació que us permeti respondre a les preguntes que planteja l’enunciat.  
-Tingueu també en compte que un mateix experiment pot proporcionar informació per a diverses preguntes.
+- `numpy` — Operacions numèriques i càlculs de mitjanes i distàncies.  
+- `matplotlib` — Generació de gràfics per a l’anàlisi d’experiments.  
+- `pandas` — Gestió de dades i resultats experimentals en taules.  
+- `time` — Mesura del temps d’execució dels algorismes.  
+- `random` — Generació d’escenaris i inicialitzacions aleatòries.  
+- `json` — Emmagatzematge i lectura de resultats d’experiments.  
+- `math` — Funcions matemàtiques per al càlcul de costos i heurístiques.  
+- `aima3` — Implementació dels algorismes de cerca local (Hill Climbing, Simulated Annealing).
 
-Seguiu l’ordre dels experiments que teniu a l’enunciat; això us permetrà anar prenent decisions sobre els diferents elements del problema i establir-les per a experiments posteriors.
+Per instal·lar totes les dependències necessàries:
 
-Per ajustar els paràmetres del **Simulated Annealing**, escolliu valors extrems i proveu-ne els efectes.  
-A partir d’aquests valors podeu anar ajustant-los explorant punts intermedis fins a trobar un valor que considerareu adequat segons l’objectiu del problema.  
-Tingueu en compte el significat dels paràmetres per guiar-vos en la vostra exploració.
+```bash
+pip install numpy matplotlib pandas aima3
+```
 
-Feu **suposicions** sobre com haurien de ser les solucions de cada experiment i comproveu els resultats que obteniu.  
-Compareu si aquests resultats corresponen amb les vostres intuïcions i intenteu justificar el resultat.
+---
 
-Tingueu present que, per poder extreure conclusions fonamentades, haureu d’executar cada experiment **diverses vegades**.  
-Per tal de comparar, haureu d’executar els algoritmes amb les mateixes dades; per això podeu fixar les **llavors del generador de nombres aleatoris** quan creeu les dades.
+## Autors
 
-Podeu il·lustrar la **significativitat dels resultats** que obtingueu utilitzant els coneixements adquirits a l’assignatura d’estadística.  
-També podeu utilitzar **gràfics** per mostrar el que succeeix als experiments.
-
-No us oblideu d’anar escrivint la **documentació** a mesura que aneu fent els experiments.
-
-## Quarta setmana: La documentació final (del 10 al 14 de novembre)
-
-En aquesta setmana hauríeu de tenir els resultats dels experiments i escriure la documentació.
-
-Una cosa que heu de tenir present és que la documentació ha de ser un reflex del vostre treball, ja que és el que servirà perquè qualifiquem la vostra pràctica. Una mala documentació significa una mala nota.
-
-La documentació ha d’incloure:
-
-- La descripció/justificació de la implementació de l’estat  
-- La descripció/justificació dels operadors que heu triat  
-- La descripció/justificació de les estratègies per trobar la solució inicial  
-- La descripció/justificació de les funcions heurístiques  
-- Per a cada experiment:
-  - Condicions de cada experiment  
-  - Resultats de l’experiment  
-  - Què esperàveu i què heu obtingut  
-  - Comparacions  
-  - Comentaris addicionals que us semblin adequats  
-- Comparació entre els resultats obtinguts amb Hill Climbing i Simulated Annealing (no oblideu explicar com heu ajustat els paràmetres per a aquest últim algoritme).  
-- Respostes raonades a les preguntes de l’enunciat.
-
+- Ferran Òdena
+- Carlos Palazón  
+- Pol Riera

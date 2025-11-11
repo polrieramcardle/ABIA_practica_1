@@ -1,238 +1,249 @@
 <style>
-  /* Estils globals del document */
-  body {
-    font-family: Helvetica, Arial, sans-serif;
-    font-size: 11pt;
-    text-align: justify;
-    line-height: 1.4;
-  }
+/* Estils globals del document */
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 9pt;
+  text-align: justify;
+  line-height: 1.4;
+}
 
-  /* Paràgrafs justificats */
-  p {
-    text-align: justify;
-    font-size: 10pt;
-  }
+/* Paràgrafs justificats */
+p {
+  text-align: justify;5
+  font-size: 9pt;
+}
 
-  /* Títols més petits */
-  h1 {
-    font-size: 14pt;
-    text-align: left;
-  }
+/* Estils per a les llistes amb la mateixa mida que el text normal */
+ul, ol, code{
+  font-size: 9pt;
+  line-height: 1.4;
+}
 
-  h2 {
-    font-size: 12pt;
-    text-align: left;
-  }
+li {
+  font-size: 9pt;
+  line-height: 1.4;
+}
 
-  h3 {
-    font-size: 11pt;
-    text-align: left;
-  }
+/* Títols més petits */
+h1 {
+  font-size: 12pt;
+  text-align: left;
+}
 
-  h4 {
-    font-size: 10pt;
-    text-align: left;
-  }
+h2 {
+  font-size: 10pt;
+  text-align: left;
+}
 
-  /* Contenidor principal per a la fila d'imatges */
-  .image-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    align-items: flex-start;
-    width: 100%;
-  }
+h3 {
+  font-size: 9pt;
+  text-align: left;
+}
 
-  /* Cada columna que conté una imatge i el seu text */
-  .image-column {
-    flex: 0 1 48%;
-    min-width: 280px;
-    max-width: 450px;              /* LÍMIT: Màxim 450px d'amplada */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box;
-  }
+h4 {
+  font-size: 9pt;
+  text-align: left;
+}
 
-  /* Quan només hi ha UNA imatge */
-  .image-row:has(.image-column:only-child) .image-column {
-    max-width: 600px;              /* LÍMIT: Una sola imatge màx 600px */
-    flex: 0 1 auto;
-  }
+/* Contenidor principal per a la fila d'imatges */
+.image-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+  width: 100%;
+}
 
-  /* Imatge única */
-  .image-row:has(.image-column:only-child) .image-column img {
-    width: 100%;
-    max-width: 600px;              /* LÍMIT: Max 600px per imatge única */
-    max-height: 500px;             /* LÍMIT: Max 500px d'alçada */
-    height: auto;
-    object-fit: contain;
-  }
+/* Cada columna que conté una imatge i el seu text */
+.image-column {
+  flex: 0 1 48%;
+  min-width: 280px;
+  max-width: 450px;              /* LÍMIT: Màxim 450px d'amplada */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
 
-  /* Estils per a la imatge (múltiples imatges) */
-  .image-column img {
-    width: 100%;
-    max-width: 450px;              /* LÍMIT: Max 450px per imatge */
-    max-height: 400px;             /* LÍMIT: Max 400px d'alçada */
-    height: auto;
-    display: block;
-    object-fit: contain;
-  }
+/* Quan només hi ha UNA imatge */
+.image-row:has(.image-column:only-child) .image-column {
+  max-width: 600px;              /* LÍMIT: Una sola imatge màx 600px */
+  flex: 0 1 auto;
+}
 
-  /* Estils per al peu de foto */
-  .image-column .caption {
-    margin-top: 0.5rem;
-    font-size: 9pt;
-    text-align: center;
-    color: #555;
-    width: 100%;
-  }
+/* Imatge única */
+.image-row:has(.image-column:only-child) .image-column img {
+  width: 100%;
+  max-width: 600px;              /* LÍMIT: Max 600px per imatge única */
+  max-height: 500px;             /* LÍMIT: Max 500px d'alçada */
+  height: auto;
+  object-fit: contain;
+}
 
-  /* Estil per a la separació de pàgines en PDF */
-  .page-break {
-    page-break-before: always;
-    break-before: page;
-  }
+/* Estils per a la imatge (múltiples imatges) */
+.image-column img {
+  width: 100%;
+  max-width: 450px;              /* LÍMIT: Max 450px per imatge */
+  max-height: 400px;             /* LÍMIT: Max 400px d'alçada */
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
 
-  /* Bloc imatge-esquerra / text-dreta */
-  .media-row {
-    display: flex;
-    gap: 1.5rem;
-    align-items: flex-start;
-    margin: 1rem 0;
-  }
+/* Estils per al peu de foto */
+.image-column .caption {
+  margin-top: 0.5rem;
+  font-size: 8pt;
+  text-align: center;
+  color: #555;
+  width: 100%;
+}
 
-  .media-image {
-    flex: 0 0 38%;
-    max-width: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+/* Estil per a la separació de pàgines en PDF */
+.page-break {
+  page-break-before: always;
+  break-before: page;
+}
 
-  .media-image img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
+/* Bloc imatge-esquerra / text-dreta */
+.media-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
 
-  .media-image .caption {
-    margin-top: 0.5rem;
-    font-size: 9pt;
-    text-align: center;
-    color: #555;
-  }
+.media-image {
+  flex: 0 0 38%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .media-text {
-    flex: 1 1 0;
-    min-width: 240px;
-  }
+.media-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 
-  /* ============================================
-     CONTENIDOR DE TAULES AMB PEU DE TAULA
-     ============================================ */
+.media-image .caption {
+  margin-top: 0.5rem;
+  font-size: 8pt;
+  text-align: center;
+  color: #555;
+}
+
+.media-text {
+  flex: 1 1 0;
+  min-width: 240px;
+}
+
+/* ============================================
+   CONTENIDOR DE TAULES AMB PEU DE TAULA
+   ============================================ */
+.table-container {
+  width: 100%;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+
+/* Estils per a les taules */
+.table-container table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  font-size: 7pt;
+  margin: 0 auto;
+  background-color: #fff;
+}
+
+/* Capçalera de taula */
+.table-container thead {
+  background-color: #e0e0e0;
+  font-weight: bold;
+}
+
+.table-container th {
+  padding: 8px 6px;
+  text-align: center;
+  border: 1px solid #888;
+  font-size: 7pt;
+}
+
+/* Files de dades */
+.table-container td {
+  padding: 6px 5px;
+  text-align: center;
+  border: 1px solid #aaa;
+  font-size: 7pt;
+}
+
+/* Files alternades (zebra striping) */
+.table-container tbody tr:nth-child(even) {
+  background-color: #f5f5f5;
+}
+
+/* Peu de taula (caption) */
+.table-container .table-caption {
+  margin-top: 0.5rem;
+  font-size: 8pt;
+  text-align: center;
+  color: #555;
+  font-style: italic;
+}
+
+/* Estil alternatiu: caption sobre la taula */
+.table-container .table-title {
+  margin-bottom: 0.5rem;
+  font-size: 9pt;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Millores per a impressió/PDF */
+@media print {
   .table-container {
-    width: 100%;
-    margin: 1.5rem 0;
-    overflow-x: auto;
     page-break-inside: avoid;
   }
 
-  /* Estils per a les taules */
   .table-container table {
-    width: 100%;
-    max-width: 100%;
-    border-collapse: collapse;
-    font-size: 8pt;
-    margin: 0 auto;
-    background-color: #fff;
+    border: 1px solid #000;
   }
 
-  /* Capçalera de taula */
-  .table-container thead {
-    background-color: #e0e0e0;
-    font-weight: bold;
-  }
-
-  .table-container th {
-    padding: 8px 6px;
-    text-align: center;
-    border: 1px solid #888;
-    font-size: 8pt;
-  }
-
-  /* Files de dades */
+  .table-container th,
   .table-container td {
-    padding: 6px 5px;
-    text-align: center;
-    border: 1px solid #aaa;
+    border: 1px solid #666;
+  }
+
+  .image-column {
+    page-break-inside: avoid;
+  }
+
+  /* Límits més restrictius per a PDF */
+  .image-column img {
+    max-height: 350px;
+  }
+
+  .image-row:has(.image-column:only-child) .image-column img {
+    max-height: 450px;
+  }
+}
+
+@page {
+  @bottom-center {
+    content: "Pàgina " counter(page) " de " counter(pages);
     font-size: 8pt;
-  }
-
-  /* Files alternades (zebra striping) */
-  .table-container tbody tr:nth-child(even) {
-    background-color: #f5f5f5;
-  }
-
-  /* Peu de taula (caption) */
-  .table-container .table-caption {
-    margin-top: 0.5rem;
-    font-size: 9pt;
-    text-align: center;
     color: #555;
-    font-style: italic;
   }
+}
 
-  /* Estil alternatiu: caption sobre la taula */
-  .table-container .table-title {
-    margin-bottom: 0.5rem;
-    font-size: 10pt;
-    text-align: center;
-    font-weight: bold;
-    color: #333;
-  }
-
-  /* Millores per a impressió/PDF */
-  @media print {
-    .table-container {
-      page-break-inside: avoid;
-    }
-
-    .table-container table {
-      border: 1px solid #000;
-    }
-
-    .table-container th,
-    .table-container td {
-      border: 1px solid #666;
-    }
-    
-    .image-column {
-      page-break-inside: avoid;
-    }
-    
-    /* Límits més restrictius per a PDF */
-    .image-column img {
-      max-height: 350px;
-    }
-    
-    .image-row:has(.image-column:only-child) .image-column img {
-      max-height: 450px;
-    }
-  }
-
-  @page {
-    @bottom-center {
-      content: "Pàgina " counter(page) " de " counter(pages);
-      font-size: 9pt;
-      color: #555;
-    }
-  }
 </style>
-
 
 ## 0. Taula de continguts
 
@@ -296,11 +307,11 @@ Per a respondre aquestes qüestions, plantegem les següents hipòtesis:
 
 #### 4.4.2 Mètode
 
-Per a resoldre aquesta qüestió, farem un estudi experimental amb mesures repetides, utilitzant la proporció fixe $10:100$ (centres:gasolineres) per a diferents mides del problema. Seleccionarem mides creixents per avaluar l'impacte de la mida del problema en el rendiment dels algorismes. Aquestrs mides seran múltiples de $10:100$, com ara: $20:200$, $30:300$, $40:400$, fins a $100:1000$.
+Per a resoldre aquesta qüestió, farem un estudi experimental amb mesures repetides, utilitzant la proporció ``(centres:gasolineres)`` per a diferents mides del problema. Seleccionarem mides creixents per avaluar l'impacte de la mida del problema en el rendiment dels algorismes. Aquestrs mides seran múltiples de $(10:100)$, com ara: $(20:200)$, $(30:300)$, $(40:400)$, fins a $(100:1000)$.
 
 Executatrem 3 rèpliques per cada combinació algorisme-mida (amb seeds diferents: 1234, 1235, 1236), per tant, el total d'experiments serà:
 
-- 10 mides del problema (de $10:100$ a $100:1000$)
+- 10 mides del problema (de $(10:100)$ a $(100:1000)$)
 - 2 algorismes (HC i SA)
 - 3 rèpliques per combinació
 
@@ -440,20 +451,21 @@ Variables controlades:
   </div>
 </div>
 
-Ambdós algorismes obtenen solucions de qualitat idèntica en totes les mides del problema, amb beneficis que oscil·len entre 78,905€ (10 centres) i 766,644€ (100 centres). Les desviacions estàndard també són equivalents, indicant que la inicialització greedy utilitzada ja proporciona solucions d'alta qualitat. En aquest context, SA no aconsegueix escapar dels òptims locals trobats per HC per millorar els resultats.
+Ambdós algorismes obtenen solucions de qualitat idèntica en totes les mides del problema, amb beneficis que oscil·len entre 78905€ (10 centres) i 766644€ (100 centres). Les desviacions estàndard també són equivalents, indicant que la inicialització greedy utilitzada ja proporciona solucions d'alta qualitat. En aquest context, SA no aconsegueix escapar dels òptims locals trobats per HC per millorar els resultats.
 
 Anàlisi del temps d'execució segons l'algorisme:
 
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/4/experiment_escalabilitat_log.png" alt="Gràfic de Temps d'Execució vs Mida del Problema">
-    <div class="caption">Figura n: Log-temps d'execució (ms) en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).</</div>
+    <div class="caption">Figura n: Log-temps d'execució (ms) en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).
+    </div>
   </div>
 </div>
 
-Les dues línies (HC en blau i SA en taronja) són aproximadament paral·leles en escala logarítmica. Això indica que ambdós algorismes tenen la mateixa complexitat temporal O(n). Si un algorisme creixés quadràticament i l'altre linealment, les línies divergirien progressivament. La distància vertical constant entre les dues línies confirma que SA és consistentment 35-40 vegades més lent que HC en tot el rang de mides. En escala logarítmica, una diferència constant vertical representa un factor multiplicatiu constant.
+Les dues línies (HC en blau i SA en taronja) són aproximadament paral·leles en escala logarítmica. Això indica que ambdós algorismes tenen la mateixa complexitat temporal $O(n)$. Si un algorisme creixés quadràticament i l'altre linealment, les línies divergirien progressivament. La distància vertical constant entre les dues línies confirma que SA és consistentment 35-40 vegades més lent que HC en tot el rang de mides. En escala logarítmica, una diferència constant vertical representa un factor multiplicatiu constant.
 
-No obstant això, Hill Climbing resulta clarament preferible en aquest context específic, ja que proporciona solucions de qualitat idèntica a les de Simulated Annealing amb un temps d'execució entre 35 i 40 vegades inferior. És rellevant destacar que la diferència temporal entre ambdós algorismes es manté com un factor multiplicatiu constant al llarg de tot el rang de mides analitzat, evidenciant que no es tracta d'una diferència de complexitat algorítmica sinó d'un cost base inherent a SA. Extrapolant els resultats observats, per a un problema de 200 centres de distribució s'esperarien temps d'execució aproximats de 70-75 mil·lisegons per a Hill Climbing i al voltant de 2,500 mil·lisegons per a Simulated Annealing, mantenint la mateixa proporció temporal i qualitat de solució, la qual cosa reforça la idoneïtat de HC per a aplicacions que requereixin respostes ràpides sense comprometre la qualitat dels resultats obtinguts.
+No obstant això, Hill Climbing resulta clarament preferible en aquest context específic, ja que proporciona solucions de qualitat idèntica a les de Simulated Annealing amb un temps d'execució entre 35 i 40 vegades inferior. És rellevant destacar que la diferència temporal entre ambdós algorismes es manté com un factor multiplicatiu constant al llarg de tot el rang de mides analitzat, evidenciant que no es tracta d'una diferència de complexitat algorítmica sinó d'un cost base inherent a SA. Extrapolant els resultats observats, per a un problema de 200 centres de distribució s'esperarien temps d'execució aproximats de 70-75 mil·lisegons per a Hill Climbing i al voltant de 2500 mil·lisegons per a Simulated Annealing, mantenint la mateixa proporció temporal i qualitat de solució, la qual cosa reforça la idoneïtat de HC per a aplicacions que requereixin respostes ràpides sense comprometre la qualitat dels resultats obtinguts.
 
 L'aplanament de HC entre 30-70 centres és interessant i suggereix que l'algorisme convergeix més ràpidament en problemes de mida mitjana, possiblement per característiques específiques de les instàncies generades o perquè l'espai de cerca té menys òptims locals a explorar.
 
@@ -462,13 +474,13 @@ Anàlisi segons la mida del problema:
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/4/experiment_escalabilitat.png" alt="Gràfic de Temps d'Execució vs Mida del Problema">
-    <div class="caption">Figura n+1: Gràfis varis en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).<div>
+    <div class="caption">Figura n+1: Gràfcs varis en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).</div>
   </div>
 </div>
 
 Aquest conjunt de gràfics proporciona una anàlisi completa i multidimensional dels resultats experimentals
 
-Gràfic 1: Temps d'execució vs Mida del problema (superior esquerre)
+**Gràfic 1:** Temps d'execució vs Mida del problema (superior esquerre)
 
 - La línia blava (HC) es manté gairebé plana, oscillant entre 5-37 ms en tot el rang
 - La línia taronja (SA) mostra un creixement lineal pronunciat, de ~177 ms a ~1,312 ms
@@ -476,43 +488,43 @@ Gràfic 1: Temps d'execució vs Mida del problema (superior esquerre)
 
 Hill Climbing és extremadament ràpid i estable, mentre que SA presenta un cost temporal molt superior que creix de manera consistent. L'escala del gràfic fa que HC sembli quasi constant, demostrant la seva eficiència.
 
-Gràfic 2: Benefici vs Mida del problema (superior dret)
+**Gràfic 2:** Benefici vs Mida del problema (superior dret)
 
 - Les dues línies són perfectament superposades - només es veu la línia taronja de SA
-- Creixement lineal del benefici: de ~79,000€ (10 centres) a ~767,000€ (100 centres)
+- Creixement lineal del benefici: de ~79000€ (10 centres) a ~767000€ (100 centres)
 - Les barres d'error són idèntiques per ambdós algorismes
 - El benefici augmenta proporcionalment amb la mida del problema
 
 Aquí es demostra que HC i SA obtenen **exactament les mateixes solucions**. No hi ha cap avantatge de SA en qualitat, la qual cosa invalida completament el seu cost temporal addicional. El creixement lineal del benefici amb la mida indica que la qualitat escala bé.
 
-Gràfic 3: Ràtio de temps SA/HC (inferior esquerre)
+**Gràfic 3:** Ràtio de temps SA/HC (inferior esquerre)
 
 - La línia roja discontinua marca la igualtat (SA = HC)
-- El ràtio oscil·la entre 23x (50 centres) i 47x (20 centres)
-- Variabilitat notable: el ràtio no és perfectament constant
+- El ràtio oscil·la entre $23x$ (50 centres) i $47x$(20 centres)
+- Variabilitat notable: el ràtio no és constant
 - Pic a 20 centres (~47x) i vall a 50 centres (~23x)
 
 Aquesta variabilitat en el ràtio suggereix que la velocitat relativa dels algorismes depèn parcialment de les característiques específiques de cada instància del problema. Tot i això, SA sempre és almenys 23 vegades més lent, confirmant la seva inferioritat en eficiència. El valor mitjà de 35-40x es manté com a referència.
 
-Gràfic 4: Diferència de benefici SA - HC (inferior dret)
+**Gràfic 4:** Diferència de benefici SA - HC (inferior dret)
 
-- La línia està **perfectament centrada en zero** (diferència = 0€)
+- La línia està **perfectament centrada en zero** (diferència = $0€$)
 - No hi ha cap desviació visible de la línia horizontal
 - Tots els punts coincideixen exactament amb zero
 
 #### 4.4.4 Conclusions
 
-Respecte a $H₁a$ (qualitat de solucions):
+Respecte a $H_{1_a}$ (qualitat de solucions):
 
-**Rebutgem la hipòtesi**. Tant HC com SA van proporcionar solucions de qualitat idèntica, amb una diferència mitjana de 0€. Els beneficis obtinguts van ser exactament els mateixos en totes les mides del problema analitzades (des de 78,905€ amb 10 centres fins a 766,644€ amb 100 centres), demostrant que la inicialització greedy utilitzada ja situa les solucions en òptims locals d'alta qualitat que SA no aconsegueix superar.
+**Rebutgem la hipòtesi**. Tant HC com SA proporcionen solucions de qualitat idèntica, amb una diferència mitjana de 0€. Els beneficis obtinguts són exactament els mateixos en totes les mides del problema analitzades (des de 78905€ amb 10 centres fins a 766644€ amb 100 centres), demostrant que la inicialització greedy utilitzada ja situa les solucions en òptims locals d'alta qualitat que SA no aconsegueix superar.
 
-Respecte a $H₁b$ (temps d'execució):
+Respecte a $H_{1_b}$ (temps d'execució):
 
-**Acceptem la hipòtesi**. HC és significativament més ràpid que SA, amb una diferència de 3,500-4,000% (35-40 vegades) en promig. Per exemple, amb 100 centres, HC triga 36.86 ms mentre que SA necessita 1,312 ms, representant un factor multiplicatiu constant al llarg de tot el rang de mides analitzat. Aquesta diferència es manté estable independentment de la mida del problema.
+**Acceptem la hipòtesi**. HC és significativament més ràpid que SA, amb una diferència de 35-40 vegades més, en promig. Per exemple, amb 100 centres, HC triga ``36.86 ms`` mentre que SA necessita ``1.312 ms``, representant un factor multiplicatiu constant al llarg de tot el rang de mides analitzat. Aquesta diferència es manté estable independentment de la mida del problema.
 
-Respecte a $H₁c$ (escalabilitat):
+Respecte a $H_{1_c}$ (escalabilitat):
 
-**Rebutgem parcialment la hipòtesi inicial de creixement no lineal**. El temps d'execució creix de manera aproximadament lineal O(n) amb la mida del problema, observant-se increments de 7.8x per HC i 7.4x per SA quan la mida augmenta 10 vegades (de 10 a 100 centres). Aquest comportament és millor del previst i indica una excel·lent escalabilitat per ambdós algorismes, tot i que el cost base de SA el fa impràctic per a problemes grans malgrat la seva complexitat lineal.
+**Rebutgem parcialment la hipòtesi inicial de creixement no lineal**. El temps d'execució creix de manera aproximadament lineal $O(n)$ amb la mida del problema, observant-se increments de 7.8x per HC i 7.4x per SA quan la mida augmenta 10 vegades (de 10 a 100 centres). Aquest comportament és millor del previst i indica una excel·lent escalabilitat per ambdós algorismes, tot i que el cost base de SA el fa impràctic per a problemes grans malgrat la seva complexitat lineal.
 
 ***
 
