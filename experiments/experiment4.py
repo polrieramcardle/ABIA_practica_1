@@ -6,6 +6,7 @@ from implementacio.abia_Gasolina import Gasolineres, CentresDistribucio
 import time
 import csv
 import matplotlib.pyplot as plt
+import copy
 
 # ========================================
 # EXPERIMENT 4: ESCALABILITAT
@@ -72,13 +73,19 @@ for num_centres, num_gasolineres in mides:
             centres=centres
         )
         
-        # Generar estat inicial
-        initial_state = generate_greedy_initial_state(params)
+        # Generar estat inicial BASE
+        initial_state_base = generate_greedy_initial_state(params)
+        
+        # ========================================
+        # CREAR CÒPIES INDEPENDENTS ← AQUÍ!
+        # ========================================
+        initial_state_hc = copy.deepcopy(initial_state_base)
+        initial_state_sa = copy.deepcopy(initial_state_base)
         
         # ========================================
         # HILL CLIMBING
         # ========================================
-        problema_hc = CamionsProblema(initial_state)
+        problema_hc = CamionsProblema(initial_state_hc)
         temps_inici_hc = time.perf_counter()
         solucio_hc = hill_climbing(problema_hc)
         temps_final_hc = time.perf_counter()
@@ -96,7 +103,7 @@ for num_centres, num_gasolineres in mides:
         # ========================================
         # SIMULATED ANNEALING
         # ========================================
-        problema_sa = CamionsProblema(initial_state)
+        problema_sa = CamionsProblema(initial_state_sa)
         temps_inici_sa = time.perf_counter()
         solucio_sa = simulated_annealing(problema_sa)
         temps_final_sa = time.perf_counter()
@@ -112,7 +119,6 @@ for num_centres, num_gasolineres in mides:
         benefici_sa_list.append(benefici_sa)
         
         print(f"  Rèplica {replica + 1}/{n_repliques} completada")
-    
     # Calcular mitjanes i desviacions estàndard
     temps_hc_mitjana = sum(temps_hc_list) / len(temps_hc_list)
     temps_sa_mitjana = sum(temps_sa_list) / len(temps_sa_list)

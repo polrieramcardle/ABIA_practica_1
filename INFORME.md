@@ -248,7 +248,7 @@
     - [4.4.1 Plantejament del problema](#441-plantejament-del-problema)
     - [4.4.2 Mètode](#442-mètode)
     - [4.4.3 Resultats](#443-resultats)
-  - [4.4.4 Conclusions](#444-conclusions)
+    - [4.4.4 Conclusions](#444-conclusions)
   - [4.5 Experiment 5: Consolidació de Centres](#45-experiment-5-consolidació-de-centres)
   - [4.6 Experiment 6: Sensibilitat al Cost per Km](#46-experiment-6-sensibilitat-al-cost-per-km)
   - [4.7 Experiment 7: Variació de l'Horari Laboral](#47-experiment-7-variació-de-lhorari-laboral)
@@ -500,7 +500,7 @@ Gràfic 4: Diferència de benefici SA - HC (inferior dret)
 - No hi ha cap desviació visible de la línia horizontal
 - Tots els punts coincideixen exactament amb zero
 
-### 4.4.4 Conclusions
+#### 4.4.4 Conclusions
 
 Respecte a $H₁a$ (qualitat de solucions):
 

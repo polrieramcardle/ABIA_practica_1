@@ -12,7 +12,7 @@ class CamionsProblema(Problem):
         super().__init__(initial_state)
 
     def actions(self, state: StateRepresentation) -> Generator[CamionsOperator, None, None]:
-        return state.generate_all_actions()
+        return state.generate_actions_lazy()
 
     def result(self, state: StateRepresentation, action: CamionsOperator) -> StateRepresentation:
         return state.apply_action(action)
