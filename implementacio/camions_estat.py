@@ -162,6 +162,7 @@ class StateRepresentation(object):
         
         new_state = self._copy()
 
+        # Primer apliquem l'operador swapCentres, que intercanvia els centres de dos camions
         if isinstance(action, swapCentres):
             c1 = action.centre1
             c2 = action.centre2

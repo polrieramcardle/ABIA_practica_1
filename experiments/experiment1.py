@@ -6,26 +6,17 @@ from implementacio.abia_Gasolina import Gasolineres, CentresDistribucio
 import time
 
 # ----------------------------------------
-# Configuració del problema
+# Configuració bàsica del problema
 # ----------------------------------------
-gasolineres = Gasolineres(num_gasolineres=100, seed=1234)
-centres = CentresDistribucio(num_centres=10, multiplicitat=1, seed=1234)
+num_gasolineres = 100
+num_centres = 10
+km_max = 640
+n_viatges = 5
+valor_diposits = 1000
+cost_km = 2
+num_repliques = 10  # Nombre de rèpliques per experiment
 
-params = ProblemParameters(
-    km=640,  # Màxim km per camió
-    n_viatges=5,  # Màxim viatges per camió
-    valor=1000,  # Valor base del dipòsit (€)
-    cost_km=2,  # Cost per km recorregut (€/km)
-    gasolineres=gasolineres,
-    centres=centres
-)
-
-# Estat inicial
-initial_state = generate_greedy_initial_state(params)
-
-# ----------------------------------------
-# Definició de conjunts d'operadors per provar
-# ----------------------------------------
+# Definició de conjunts d'operadors a provar
 conjunts_operadors = {
     "swapCentres": ["swapCentres"],
     "mourePeticio": ["mourePeticio"],
@@ -34,38 +25,60 @@ conjunts_operadors = {
 }
 
 # ----------------------------------------
-# Experiments
+# Experiments amb rèpliques
 # ----------------------------------------
 for nom_conjunt, operadors in conjunts_operadors.items():
     print(f"\n=== Experiment amb operadors: {nom_conjunt} ===")
     
-    # Crear una nova instància del problema per cada experiment
-    problema = CamionsProblema(initial_state)
-    problema.operadors = operadors  # Afegir aquesta línia per configurar els operadors
-    
-    start = time.perf_counter()
-    solucio = hill_climbing(problema)
-    end = time.perf_counter()
-    temps_ms = (end - start) * 1000
-    
-    # Benefici total: Ingressos - Cost km - Penalització
-    ingressos = solucio.calcular_ingressos_servits()
-    cost_km = solucio.calcular_cost_km()
-    penalitzacio = solucio.calcular_penalitzacio_pendents()
-    benefici = ingressos - cost_km - penalitzacio
-    
-    peticions_servides = len(solucio._get_peticions_servides())
-    peticions_totals = len(solucio.peticions_info)
-    peticions_pendents = peticions_totals - peticions_servides
-    
-    km_totals = sum(solucio._calcular_km_viatge(id_camio, viatge)
-                    for id_camio, camio in enumerate(solucio.camions)
-                    for viatge in camio)
-    
-    # Mostrar resultats
-    print(f"Benefici obtingut: {benefici:.2f} €")
-    print(f"Temps d'execució: {temps_ms:.2f} ms")
-    print(f"Peticions servides: {peticions_servides}/{peticions_totals}")
-    print(f"Peticions pendents: {peticions_pendents}")
-    print(f"Km totals recorreguts: {km_totals:.2f} km")
-    print("-" * 70)
+    for replica in range(num_repliques):
+        seed = 1234 + replica  # Diferent seed per rèplica
+        print(f"\n--- Rèplica {replica + 1} | seed={seed} ---")
+        
+        # Crear gasolineres i centres amb seed diferent
+        gasolineres = Gasolineres(num_gasolineres=num_gasolineres, seed=seed)
+        centres = CentresDistribucio(num_centres=num_centres, multiplicitat=1, seed=seed)
+        
+        # Paràmetres del problema
+        params = ProblemParameters(
+            km=km_max,
+            n_viatges=n_viatges,
+            valor=valor_diposits,
+            cost_km=cost_km,
+            gasolineres=gasolineres,
+            centres=centres
+        )
+        
+        # Estat inicial greedy
+        initial_state = generate_greedy_initial_state(params)
+        
+        # Crear instància del problema i assignar operadors
+        problema = CamionsProblema(initial_state)
+        problema.operadors = operadors
+        
+        # Executar Hill Climbing
+        start = time.perf_counter()
+        solucio = hill_climbing(problema)
+        end = time.perf_counter()
+        temps_ms = (end - start) * 1000
+        
+        # Calcular beneficis
+        ingressos = solucio.calcular_ingressos_servits()
+        cost_total_km = solucio.calcular_cost_km()
+        penalitzacio = solucio.calcular_penalitzacio_pendents()
+        benefici = ingressos - cost_total_km - penalitzacio
+        
+        peticions_servides = len(solucio._get_peticions_servides())
+        peticions_totals = len(solucio.peticions_info)
+        peticions_pendents = peticions_totals - peticions_servides
+        
+        km_totals = sum(solucio._calcular_km_viatge(id_camio, viatge)
+                        for id_camio, camio in enumerate(solucio.camions)
+                        for viatge in camio)
+        
+        # Mostrar resultats
+        print(f"Benefici obtingut: {benefici:.2f} €")
+        print(f"Temps d'execució: {temps_ms:.2f} ms")
+        print(f"Peticions servides: {peticions_servides}/{peticions_totals}")
+        print(f"Peticions pendents: {peticions_pendents}")
+        print(f"Km totals recorreguts: {km_totals:.2f} km")
+        print("-" * 70)

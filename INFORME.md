@@ -270,13 +270,118 @@ h4 {
 
 ## 1. Introducció
 
+En aquest informe es presenta l’anàlisi, disseny i implementació d’algorismes de cerca local aplicats a la resolució del problema exposat a l’enunciat. L’objectiu principal del projecte és explorar com diferents tècniques d’optimització poden ser utilitzades per millorar la presa de decisions en un entorn complex, en què es busca maximitzar el benefici total del sistema mentre es compleixen restriccions operatives com els límits de recorreguts i la capacitat dels camions.
+
 ## 2. Objectius i metodologia
 
+## 3. Representació del problema
+En aquesta secció es descriu com s'ha representat el problema proposat mitjançant algorismes de cerca local. S'inclouen els detalls sobre l'estat, la solució inicial, els operadors de cerca i la funció heurística utilitzada. Aquesta representació és fonamental per al correcte funcionament dels algorismes de cerca local, ja que determina com es poden explorar les solucions possibles i com es pot avaluar la qualitat d'aquestes solucions.
+
+### 3.1. Definició de l'Estat
+Hem definit l'estat com una assignació de peticions de gasolineres als camions dels centres de distribució, tenint en compte les restriccions de distància, viatges màxims per camió i nombre màxim de peticions per viatge. Cada estat inclou la informació sobre quines peticions són ateses per cada camió, així com dintre de quin viatge es troba assignada cada petició.
+
+### 3.2. La solució inicial
+La solució inicial és el punt de partida per als algorismes de cerca local, i la seva qualitat pot influir significativament en el rendiment de l'algorisme. Hem implementat tres possibles estratègies d'inicialització:
+- **Solució Buida:** En la solució buida, deixem tots els camions sense cap petició assignada. Aquesta estratègia és molt simple, amb un cost O(1), cosa que la fa molt eficient en termes de temps. Però, la qualitat de la solució és molt baixa: tot i ser una solució vàlida, ja que a l'enunciat no es prohibeix no atendre cap petició, el punt de partida és molt pobre i l'algorisme haurà de treballar molt per millorar-la. Es una estratègia que pot ser útil per avaluar la capacitat de l'algorisme per trobar bones solucions des d'un punt de partida molt dolent, però en la pràctica no és recomanable per a problemes reals, i no creiem que pugui donar bons resultats en aquest cas.
+- **Inicialització Aleatòria:** En aquesta estratègia, assignem les peticions més properes a cada centre de distribució fins a omplir la seva capacitat, tenint en compte el nombre màxim de viatges que pot fer cada camió. Aquesta estratègia és més complexa que la solució buida, amb un cost O(n log n) degut a la necessitat de calcular distàncies i ordenar les peticions per proximitat. La qualitat de la solució inicial és moderada, ja que es basa en la proximitat geogràfica, però no té en compte altres factors com les penalitzacions de les peticions. Aquesta estratègia pot ser útil per a problemes on la proximitat és un factor important, però pot no ser suficient per obtenir bones solucions en problemes més complexos.
+- **Inicialització Greedy:** Aquesta estratègia assigna les peticions als camions de manera que es maximitzi el benefici immediat, tenint en compte els ingressos per petició, els costos de transport i les penalitzacions per no atendre peticions. Aquesta estratègia és la més complexa de les tres, amb un cost O(n^2) degut a la necessitat d'avaluar múltiples opcions d'assignació per maximitzar el benefici. La qualitat de la solució inicial és alta, ja que es basa en una anàlisi detallada dels costos i beneficis associats a cada petició. Aquesta estratègia serà la més recomanable, ja que partint d'una bona solució inicial, els algorismes de cerca local tindran menys feina per millorar-la i podran trobar solucions òptimes més ràpidament.
+
+### 3.3. Els operadors de cerca
+Els operadors de cerca són les funcions que permeten explorar l'espai d'estats veïns a partir d'un estat actual. És important dissenyar operadors que permetin una exploració efectiva de l'espai d'estats, que evitin sortir de l'espai de solucions vàlides, que tinguin un cost computacional raonable i que peretin explorar tot l'espai de solucions.
+Hem implementat tres operadors principals:
+- **swapCentres:** Aquest operador intercanvia els centres de distribució assignats a dos camions diferents, que és el mateix que intercanviar les peticions assignades als camions. Això permet explorar diferents configuracions d'assignació de peticions als centres, i pot ajudar a trobar solucions més òptimes. El factor de ramificació d'aquest operador és, aproximadament, O(m^2), on m és el nombre de camions, ja que es poden intercanviar qualsevol parell de camions.
+- **mourePeticio:** Aquest operador mou una petició d'un camió a un altre, sempre que es compleixin les restriccions de capacitat i distància. Això permet ajustar l'assignació de peticions de manera més fina, i pot ajudar a millorar la qualitat de la solució. El factor de ramificació d'aquest operador és, aproximadament, O(n*m), on n és el nombre de peticions i m és el nombre de camions, ja que cada petició pot ser moguda a qualsevol camió.
+- **intercanviarPeticions:** Aquest operador intercanvia dues peticions assignades a dos camions diferents, sempre que es compleixin les restriccions de capacitat i distància. Això permet explorar configuracions alternatives d'assignació de peticions, i pot ajudar a trobar solucions més òptimes. El factor de ramificació d'aquest operador és, aproximadament, O(n^2), on n és el nombre de peticions, ja que es poden intercanviar qualsevol parell de peticions.
+
+### 3.4. La funció heurística
+La funció heurística és el criteri que utilitzen els algorismes de cerca local per avaluar la qualitat d'un estat i decidir quins estats explorar a continuació. El rendiment de l'algorisme depèn en gran mesura de la funció heurística utilitzada, ja que aquesta determina quins estats es consideren millors i quins pitjors.
+Nosaltres hem definit la funció heurística com el benefici total obtingut per l'assignació de peticions als camions, que es calcula com els ingressos totals per les peticions ateses menys els costos de transport i les penalitzacions per les peticions no ateses. Aquesta funció heurística ens permet maximitzar el benefici net, que és l'objectiu principal del problema.
+
 ## 3. Implementació en Python
+
+En aquest apartat expliquem com s'ha immplementat el problema i els algorismes de cerca local en python.
+Tenim 6 arxius principals:
+- **camions_estat.py:** Aquest arxiu conté la implementació de la classe `StateRepresentation`, que representa l'estat del problema. Aquesta classe inclou la implementació de la funció heurística així com totes les funcions auxiliars per a que funcioni correctament, els generadors de les diferents solucions inicials i la generació i aplicació dels operadors de cerca local.
+- **camions_operadors.py:** En aquest arxiu implementem la classe `CamionsOperator`, que defineix els operadors de cerca local utilitzats per explorar l'espai d'estats. Aquesta classe inclou la implementació de les classes dels operadors `swapCentres`, `mourePeticio` i `intercanviarPeticions`. 
+- **camions_parametres.py:** Aquest arxiu conté la implementació de la classe `ProblemParameters`, que emmagatzema i gestiona tots els paràmetres del problema,  el nombre de centres, gasolineres, costos, etc.
+- **camions_problema.py:** Aquest arxiu conté la implementació de la classe `CamionsProblema`, que defineix formalment el problema proposat com un problema de cerca local. Estableix els components essencials per a executar l'algorisme: l'estat inicial, els operadors de cerca, la funció heurística i si hem arribat a l'objectiu.
+- **camions.py:** Aquest arxiu és el punt d'entrada principal per a executar els algorismes de cerca local. Aquí es configuren els paràmetres del problema, es crea una instància del problema i s'executa l'algorisme de cerca local seleccionat (Hill Climbing o Simulated Annealing).
+
 
 ## 4. Experimentació
 
 ### 4.1 Experiment 1: Selecció d'Operadors
+
+Com s'ha explicat abans, hem implementat tres operadors diferents per a la cerca local: **swapCentres**, **mourePeticio** i **intercanviarPeticions**. Aquest experiment té com a objectiu avaluar l'impacte de cadascun d'aquests operadors en la qualitat de les solucions obtingudes i en el temps d'execució dels algorismes de cerca local (Hill Climbing i Simulated Annealing).
+#### 4.1.1 Plantejament del problema
+Ens plantegem la següent qüestió de recerca: dels 3 operadors implementats, són tots realment útils per millorar les solucions obtingudes pels algorismes de cerca local? O n'hi ha algun que no aporta cap benefici addicional i només incrementa el temps d'execució?
+Si hi hagués algún operador que no aportés cap millora significativa en la qualitat de les solucions, podríem eliminar-lo per reduir el temps d'execució dels algorismes sense perdre qualitat en els resultats.
+
+#### 4.1.2 Mètode
+Per a resoldre aquesta qüestió, realitzarem un estudi experimental, on executarem l'algorisme de Hill Climbing múltiples vegades per a cada combinació d'operadors. Cada execució es farà amb una inicialització diferent (mitjanant una seed diferent) per garantir que els resultats no estiguin condicionats per una única configuració inicial. Així podrem mesurar tant la mitjana de benefici obtingut, com la variabilitat dels resultats i el temps d'execució per a cada combinació d'operadors.
+Les combinacions d'operadors que avaluarem són les següents:
+- **swapCentres**
+- **mourePeticio**
+- **intercanviarPeticions**
+- **swapCentres + mourePeticio**
+- **swapCentres + mourePeticio + intercanviarPeticions**
+Per a cada combinació d'operadors, realitzarem 5 rèpliques amb seeds diferents (1234, 1235, ..., 1243), registrant per a cada rèplica: 
+- El benefici obtingut
+- El nombre de peticions servides i pendents
+- Els quilòmetres totals recorreguts
+- El temps d'execució en mil·lisegons
+Posteriorment, calcularem la mitjana i desviació típica dels resultats per a cada conjunt d'operadors, amb l'objectiu de determinar:
+- Quins operadors contribueixen de manera significativa a l'augment del benefici.
+- Si algún operador no aporta cap millora significativa en la qualitat de les solucions.
+- Quina combinació d'operadors ofereix un equilibri òptim entre qualitat de solució i temps d'execució.
+
+#### 4.1.3 Resultats
+Aquests hen sigut els resultats obtinguts en l'experiment d'avaluació d'operadors, per a diferentes seeds:
+
+| Operadors                   | Rèplica | Seed  | Benefici (€) | Temps (ms) | Peticions servides | Peticions pendents | Km totals recorreguts (km) |
+|------------------------------|---------|-------|--------------|------------|------------------|------------------|----------------------------|
+| swapCentres                 | 1       | 1234  | 72,024       | 461.82     | 79/131           | 52               | 2,708                      |
+| swapCentres                 | 2       | 1235  | 79,856       | 112.06     | 86/119           | 33               | 2,812                      |
+| swapCentres                 | 3       | 1236  | 85,004       | 252.16     | 91/124           | 33               | 2,688                      |
+| swapCentres                 | 4       | 1237  | 77,316       | 367.27     | 83/132           | 49               | 2,592                      |
+| swapCentres                 | 5       | 1238  | 74,304       | 490.35     | 81/120           | 39               | 2,778                      |
+| swapCentres                 | 6       | 1239  | 81,280       | 232.61     | 87/130           | 43               | 2,380                      |
+| swapCentres                 | 7       | 1240  | 78,000       | 234.57     | 84/128           | 44               | 2,270                      |
+| swapCentres                 | 8       | 1241  | 68,272       | 96.61      | 74/130           | 56               | 2,304                      |
+| swapCentres                 | 9       | 1242  | 67,492       | 339.37     | 74/125           | 51               | 2,524                      |
+| swapCentres                 | 10      | 1243  | 80,452       | 113.63     | 86/139           | 53               | 2,104                      |
+| mourePeticio                | 1       | 1234  | 72,040       | 583.78     | 79/131           | 52               | 2,700                      |
+| mourePeticio                | 2       | 1235  | 79,856       | 121.01     | 86/119           | 33               | 2,812                      |
+| mourePeticio                | 3       | 1236  | 85,004       | 239.35     | 91/124           | 33               | 2,688                      |
+| mourePeticio                | 4       | 1237  | 77,316       | 293.87     | 83/132           | 49               | 2,592                      |
+| mourePeticio                | 5       | 1238  | 74,304       | 366.28     | 81/120           | 39               | 2,778                      |
+| mourePeticio                | 6       | 1239  | 81,280       | 209.32     | 87/130           | 43               | 2,380                      |
+| mourePeticio                | 7       | 1240  | 78,000       | 200.46     | 84/128           | 44               | 2,270                      |
+| mourePeticio                | 8       | 1241  | 68,272       | 94.10      | 74/130           | 56               | 2,304                      |
+| mourePeticio                | 9       | 1242  | 67,492       | 323.54     | 74/125           | 51               | 2,524                      |
+| mourePeticio                | 10      | 1243  | 80,452       | 109.42     | 86/139           | 53               | 2,104                      |
+| swap+moure                  | 1       | 1234  | 72,040       | 543.33     | 79/131           | 52               | 2,700                      |
+| swap+moure                  | 2       | 1235  | 79,856       | 102.17     | 86/119           | 33               | 2,812                      |
+| swap+moure                  | 3       | 1236  | 85,004       | 214.01     | 91/124           | 33               | 2,688                      |
+| swap+moure                  | 4       | 1237  | 77,316       | 287.89     | 83/132           | 49               | 2,592                      |
+| swap+moure                  | 5       | 1238  | 74,304       | 361.36     | 81/120           | 39               | 2,778                      |
+| swap+moure                  | 6       | 1239  | 81,280       | 229.31     | 87/130           | 43               | 2,380                      |
+| swap+moure                  | 7       | 1240  | 78,000       | 220.92     | 84/128           | 44               | 2,270                      |
+| swap+moure                  | 8       | 1241  | 68,272       | 84.86      | 74/130           | 56               | 2,304                      |
+| swap+moure                  | 9       | 1242  | 67,496       | 416.40     | 74/125           | 51               | 2,522                      |
+| swap+moure                  | 10      | 1243  | 80,452       | 156.49     | 86/139           | 53               | 2,104                      |
+| swap+moure+intercanvia      | 1       | 1234  | 72,024       | 455.55     | 79/131           | 52               | 2,708                      |
+| swap+moure+intercanvia      | 2       | 1235  | 79,856       | 103.21     | 86/119           | 33               | 2,812                      |
+| swap+moure+intercanvia      | 3       | 1236  | 85,004       | 241.00     | 91/124           | 33               | 2,688                      |
+| swap+moure+intercanvia      | 4       | 1237  | 77,316       | 292.06     | 83/132           | 49               | 2,592                      |
+| swap+moure+intercanvia      | 5       | 1238  | 74,304       | 366.88     | 81/120           | 39               | 2,778                      |
+| swap+moure+intercanvia      | 6       | 1239  | 81,280       | 222.64     | 87/130           | 43               | 2,380                      |
+| swap+moure+intercanvia      | 7       | 1240  | 78,000       | 198.64     | 84/128           | 44               | 2,270                      |
+| swap+moure+intercanvia      | 8       | 1241  | 68,272       | 87.67      | 74/130           | 56               | 2,304                      |
+| swap+moure+intercanvia      | 9       | 1242  | 67,540       | 397.74     | 74/125           | 51               | 2,500                      |
+| swap+moure+intercanvia      | 10      | 1243  | 80,452       | 107.80     | 86/139           | 53               | 2,104                      |
+
+#### 4.1.4 Conclusions
 
 ### 4.2 Experiment 2: Estratègia d'Inicialització
 
@@ -500,7 +605,7 @@ Aquí es demostra que HC i SA obtenen **exactament les mateixes solucions**. No 
 **Gràfic 3:** Ràtio de temps SA/HC (inferior esquerre)
 
 - La línia roja discontinua marca la igualtat (SA = HC)
-- El ràtio oscil·la entre $23x$ (50 centres) i $47x$(20 centres)
+- La ràtio oscil·la entre $23x$ (50 centres) i $47x$(20 centres)
 - Variabilitat notable: el ràtio no és constant
 - Pic a 20 centres (~47x) i vall a 50 centres (~23x)
 
