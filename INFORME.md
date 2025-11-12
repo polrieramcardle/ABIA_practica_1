@@ -316,6 +316,10 @@ Com s'ha explicat abans, hem implementat tres operadors diferents per a la cerca
 #### 4.1.1 Plantejament del problema
 Ens plantegem la següent qüestió de recerca: dels 3 operadors implementats, són tots realment útils per millorar les solucions obtingudes pels algorismes de cerca local? O n'hi ha algun que no aporta cap benefici addicional i només incrementa el temps d'execució?
 Si hi hagués algún operador que no aportés cap millora significativa en la qualitat de les solucions, podríem eliminar-lo per reduir el temps d'execució dels algorismes sense perdre qualitat en els resultats.
+Aleshores, proposem la hipòtesi nul·la i les hipòtesis alternatives següents:
+- $H_0$: Tots els operadors contribueixen de manera significativa a l'augment del benefici obtingut pels algorismes de cerca local.
+- $H_{1_a}$: Hi ha almenys un operador que no aporta cap millora significativa en la qualitat de les solucions.
+- $H_{1_b}$: Alguna combinació d'operadors ofereix un equilibri òptim entre qualitat de solució i temps d'execució.
 
 #### 4.1.2 Mètode
 Per a resoldre aquesta qüestió, realitzarem un estudi experimental, on executarem l'algorisme de Hill Climbing múltiples vegades per a cada combinació d'operadors. Cada execució es farà amb una inicialització diferent (mitjanant una seed diferent) per garantir que els resultats no estiguin condicionats per una única configuració inicial. Així podrem mesurar tant la mitjana de benefici obtingut, com la variabilitat dels resultats i el temps d'execució per a cada combinació d'operadors.
@@ -381,7 +385,20 @@ Aquests hen sigut els resultats obtinguts en l'experiment d'avaluació d'operado
 | swap+moure+intercanvia      | 9       | 1242  | 67,540       | 397.74     | 74/125           | 51               | 2,500                      |
 | swap+moure+intercanvia      | 10      | 1243  | 80,452       | 107.80     | 86/139           | 53               | 2,104                      |
 
+1. Benefici mitjà i desviació estàndard per a cada conjunt d'operadors:
+A la taula podem observar que tots els conjunts d'operadors obtenen un benefici mitjà molt similar, al voltant dels 76.400 euros, amb una desviació estàndard propera als 5.460 euros. Això indica que la qualitat de les solucions és força consistent entre els operadors, i que cap d'ells destaca clarament en termes de benefici final.
+El fet de que les diferències siguin tan petites suggereix que els operadors no generen espais de cerca radicalment diferents: tots exploren veinats amb característiques similars i acaben trobant solucions comparables. 
+
+2. Temps d'execució mitjà i desviació estàndard per a cada conjunt d'operadors:
+El temps mitjà d'execució és el principal factor diferenciador: veiem que l'operador **swapCentres** és el més ràpid, amb un temps mitjà d'uns 250 ms, mentre que la combinació de tots tres operadors (**swap+moure+intercanvia**) és la més lenta, amb un temps mitjà proper als 270 ms. Això indica que afegir més operadors incrementa el temps d'execució, però no millora significativament la qualitat de les solucions obtingudes.
+
+3. Peticions servides i pendents: el nombre de peticions servides i pendents és molt similar entre tots els conjunts d'operadors, amb una mitjana d'aproximadament 82 peticions servides i 44 pendents. Això reforça la idea que els diferents operadors no generen solucions radicalment diferents en termes de cobertura de peticions.
+
+4. Quilòmetres totals recorreguts: els quilòmetres totals recorreguts també són molt similars entre els diferents conjunts d'operadors, amb una mitjana d'uns 2.500 km. Això suggereix que els operadors no afecten significativament l'eficiència del recorregut dels camions.
+
 #### 4.1.4 Conclusions
+Amb els resultats obtinguts, podem concloure que afegir més operadors no millora significativament la qualitat de les solucions obtingudes pels algorismes de cerca local, però sí que incrementa el temps d'execució.
+Per tant, podem rebutar la hipòtesi nul·la $H_0$ i acceptar les hipòtesis alternatives $H_{1_a}$ i $H_{1_b}$. Això ens porta a la conclusió que podem simplificar els nostres algorismes de cerca local utilitzant només l'operador **swapCentres**, ja que aquest és el més ràpid i ofereix una qualitat de solució comparable als altres conjunts d'operadors.
 
 ### 4.2 Experiment 2: Estratègia d'Inicialització
 
@@ -404,6 +421,33 @@ Per a respondre a aquestes preguntes, plantejarem les següents hipòtesis:
 #### 4.2.2 Mètode
 
 ### 4.3 Experiment 3: Calibratge de Simulated Annealing
+L'objectiu d'aquest experiment és determinar quins paràmetres de l'algorisme de Simulated Annealing (SA) proporcionen el millor rendiment en termes de qualitat de les solucions obtingudes i temps d'execució. En particular, ens centrarem en avaluar l'impacte dels paràmetres d'inicialització de la temperatura, taxa de refredament i nombre d'iteracions per temperatura.
+
+
+
+#### 4.3.1 Plantejament del problema
+Ens plantegem la següent qüestió de recerca: Com **afecten els paràmetres de Simulated Annealing** (temperatura inicial, taxa de refredament, nombre d'iteracions per temperatura) a la qualitat de les solucions obtingudes i al temps d'execució de l'algorisme?
+
+També ens plantegem:
+- Quin conjunt de paràmetres proporciona el millor equilibri entre qualitat de solució i temps d'execució?
+- Hi ha algun paràmetre que tingui un impacte significatiu en la qualitat de les solucions obtingudes?
+
+Per a respondre aquestes qüestions, plantegem les següents hipòtesis:
+- $H_0$: No hi ha diferències significatives en la qualitat de les solucions obtingudes amb diferents paràmetres de SA.
+- $H_{1_a}$: Alguna combinació específica de paràmetres proporciona solucions de millor qualitat (major benefici).
+- $H_{1_b}$: Alguna combinació específica de paràmetres redueix significativament el temps d'execució.
+
+
+
+#### 4.3.2 Mètode
+
+
+
+
+#### 4.3.3 Resultats
+
+#### 4.3.4 Conclusions
+
 
 ### 4.4 Experiment 4: Escalabilitat Temporal
 
