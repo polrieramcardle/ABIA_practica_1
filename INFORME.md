@@ -467,7 +467,6 @@ Aquests són els resultats de l'execució del script:
 | 500   | 20 | 0.005 |   1     |   79,852     |   25,996   |
 
 
-
 #### 4.3.4 Conclusions
 
 
