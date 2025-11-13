@@ -297,7 +297,11 @@ h4 {
 
 ## 1. Introducció
 
-En aquest informe es presenta l’anàlisi, disseny i implementació d’algorismes de cerca local aplicats a la resolució del problema exposat a l’enunciat. L’objectiu principal del projecte és explorar com diferents tècniques d’optimització poden ser utilitzades per millorar la presa de decisions en un entorn complex, en què es busca maximitzar el benefici total del sistema mentre es compleixen restriccions operatives com els límits de recorreguts i la capacitat dels camions.
+En moltes empreses de distribució, decidir “qui va on” cada dia és gairebé tan difícil com fer arribar físicament el producte. En el cas d’una companyia que reparteix combustible a una xarxa de gasolineres, aquesta decisió es complica encara més: cada gasolinera té diversos dipòsits, les peticions arriben en moments diferents, hi ha límits de quilòmetres i de viatges per camió, i el preu que es pot cobrar depèn de quants dies ha estat pendent cada petició. Una planificació poc encertada no només augmenta el cost en quilòmetres recorreguts, sinó que també pot implicar perdre ingressos o, fins i tot, deixar alguna gasolinera sense servei a temps.
+
+El problema que s’estudia en aquest treball parteix justament d’aquest escenari. Treballem en una graella de 100×100 km on hi ha centres de distribució i gasolineres, i cada dia s’ha de decidir quines peticions s’atendran i com s’assignaran als camions. Cada camió té un límit de viatges i de quilòmetres diaris, i en cada viatge només pot omplir fins a dos dipòsits. A més, el benefici que obté l’empresa no és simplement “quantes peticions serveix”, sinó una combinació d’ingressos (que baixen si es deixa esperar la gasolinera), cost per quilòmetre recorregut i penalització per les peticions que es deixen per a l’endemà.
+
+Aquest tipus de problemes són difícils de resoldre de manera exacta quan la mida creix, perquè el nombre de possibles assignacions i rutes és enorme. Per això, sovint es recorre a algorismes de cerca local: mètodes que no garanteixen trobar la solució òptima, però que, ben dissenyats, permeten obtenir solucions molt raonables en temps assumibles. En aquest context, el Simulated Annealing (SA) i el Hill Climbing (HC) són especialment interessants, i en aquest informe explicarem com hem adaptat aquest problema per a poder trobar una bona solució utilitzant aquests algorismes.
 
 ## 2. Objectius i metodologia
 
@@ -579,26 +583,61 @@ S'agreguen les rèpliques per configuració calculant el benefici mitjà, i es s
 
 Aquests són els resultats de l'execució del script:
 
-| limit | k  | λ     | réplica | Benefici (€) | Temps (ms) |
-|-------|----|-------|---------|--------------|------------|
-| 200   | 1  | 0.001 |   0     |   71,692     |   15,719   |
-| 200   | 1  | 0.001 |   1     |   79,840     |   18,440   |
-| 200   | 1  | 0.005 |   0     |   71,652     |   16,120   |
-| 200   | 1  | 0.005 |   1     |   79,840     |   18,418   |
-| 200   | 20 | 0.001 |   0     |   71,632     |   15,772   |
-| 200   | 20 | 0.001 |   1     |   79,840     |   17,563   |
-| 200   | 20 | 0.005 |   0     |   71,632     |   15,935   |
-| 200   | 20 | 0.005 |   1     |   79,820     |   17,906   |
-| 500   | 1  | 0.005 |   0     |   71,696     |   32,836   |
-| 500   | 1  | 0.001 |   0     |   71,684     |   33,224   |
-| 500   | 1  | 0.001 |   1     |   79,840     |   36,001   |
-| 500   | 20 | 0.001 |   0     |   71,728     |   25,523   |
-| 500   | 20 | 0.005 |   0     |   71,664     |   25,345   |
-| 500   | 1  | 0.005 |   1     |   79,840     |   27,252   |
-| 500   | 20 | 0.001 |   1     |   79,816     |   27,494   |
-| 500   | 20 | 0.005 |   1     |   79,852     |   25,996   |
+<div class="image-row">
+  <div class="image-column">
+    <img src="./experiments/resultats/3/heatmap_limit_200.png" alt="Heatmap de beneficis relatius (limit = 200)">
+    <div class="caption">
+      Figura n: Heatmap de beneficis relatius per cada combinació de paràmetres (k, λ) amb limit = 200.
+    </div>
+  </div>
+
+  <div class="image-column">
+    <img src="./experiments/resultats/3/heatmap_limit_500.png" alt="Heatmap de beneficis relatius (limit = 500)">
+    <div class="caption">
+      Figura n+1: Heatmap de beneficis relatius per cada combinació de paràmetres (k, λ) amb limit = 500.
+    </div>
+  </div>
+</div>
+
+<!-- últim gràfic centrat -->
+<div class="image-row" style="justify-content: center;">
+  <div class="image-column" style="max-width: 60%;">
+    <img src="./experiments/resultats/3/heatmap_limit_1000.png" alt="Heatmap de beneficis relatius (limit = 1000)">
+    <div class="caption">
+      Figura n+2: Heatmap de beneficis relatius per cada combinació de paràmetres (k, λ) amb limit = 1000.
+    </div>
+  </div>
+</div>
+
+En els heapmaps, podem observar que el benefici mitjà és fora estable dins del rang de paràmetres provat, amb millores modestes quan la temperatura inicial k és baixa i el refredament λ no és excessivament lent, i que augmentar el límit de passos eleva el temps però només aporta guanys marginals de benefici.
+A continuació, expliquem de forma més detallada l'efecte de cada paràmetre:
+- **Efecte de la temperatura inicial:** k=1 sol oferir els valors més alts a cada limit, amb diferències petites però consistents respecte a k=10 i k=20, i un descens clar quan k=50, on el benefici cau uns 150–500 € segons la λ; aquest patró suggereix que una temperatura inicial massa alta dilata l’exploració i retarda la convergència sense compensar amb millors solucions finals. Entre k=10 i k=20 la diferència és pràcticament nul·la, cosa que apunta a una zona plana de rendiment on el SA és poc sensible al valor exacte dins d’aquest rang.
+- **Efecte de la taxa de refredament:** λ intermedis (0.003–0.005) concentren lleugeríssims màxims en diverses files, mentre que λ=0.001 i 0.01 queden lleugerament per sota segons la fila; un λ massa petit manté la temperatura alta durant massa passos i un λ massa gran pot “refredar” massa aviat, congelant l’exploració. Les diferències entre 0.003 i 0.005 són mínimes; qualsevol dels dos és una opció segura amb k petit.
+
+- **Efecte del límit de passos:** amb el limit = 200, tenim una superfície molt plana, amb màxims al voltant de k∈{1,10} i λ∈{0.003,0.005}; és el millor compromís si el temps d’execució és crític, ja que els guanys d’anar a 500 o 1000 són petits. Amb límit = 500, el paisatge es manté molt similar, amb lleugeres pujades per k baix i λ intermedis; els increments de benefici respecte 200 són modestos. I amb el límit = 1000, apareix el mateix patró i, fins i tot, a k=50 s’observen els pitjors valors relatius; l’augment de passos no transforma el front de solucions, reforçant la idea de rendiments decreixents amb el límit.
+
+La sortida final del programa és la seguent:
+`Cerca completada. Millor configuració: {'limit': 1000, 'k': 1, 'lam': 0.001, 'mean_benefici': 76140.0, 'raw': [71732.0, 79840.0, 67988.0, 77244.0, 67336.0, 73528.0]}`
+
+Això ens indica els paràmetres pels que l'algorisme funcionarà millor. Veiem que en aquest cas el límit ideal és 1000, la k = 1, lambda = 0.001, i amb un benefici mitjà de 76140 euros. 
+
 
 #### 4.3.4 Conclusions
+A partir de l'experiment, podem extreure les seguents conclusions:
+1. El benefici mitjà obtingut mostra una baixa sensibilitat als hiperparàmetres provats: dins dels rangs testats, ni k (temperatura inicial) ni λ (taxa de refredament) ni el nombre d’iteracions (limit) produeixen canvis radicals en la qualitat final de les solucions. Les diferències observades són discretes, i la superfície de resultats és relativament plana. Això suporta parcialment la hipòtesi nul·la $H_0$.
+
+2. Quan s’explora en rangs més alts (ex. k=50), la qualitat decreix lleugerament, indicant que una temperatura inicial massa elevada allarga l’exploració, sense aportar millores significatives, mentre que valors moderats (k=1,10,20) afavoreixen una convergència eficient.
+
+3. El paràmetre amb més impacte en la qualitat és la temperatura inicial k, sempre que es mantingui en valors baixos, i en segon terme, la taxa de refredament λ: combinacions de k baix (1 o 10) i λ intermedi (0.003–0.005) donen els millors resultats de la sèrie; no s’observen avantatges en limit més alt (més iteracions) llevat d’una lleugera millora marginal, però el cost temporal creix exponencialment per un guany poc rellevant.
+
+4. El límit d’iteracions (limit) té un impacte directe sobre el temps d’execució: el temps augmenta de forma notable entre limit=200 i limit=1000, però la millora de benefici és insignificant. Per tant, la configuració més eficient és utilitzar limit=200 en combinació amb k baix i λ intermedi, maximitzant el benefici per unitat de temps i complint la hipòtesi $H_{1_b}$.
+
+Per tant, podem concloure dient que els paràmetres que utilitzem no són rellevants en el resultat obtingut al executar l'algorisme (el benefici). Però, hem pogut veure com al augmentar el nombre d'iteracions, el benefici s'ha mantingut pràcticament igual però el temps d'execució ha augmentat. Per tant, podem rebutjar la hipòtesis nul·la i acceptar $H_{1_b}$.
+
+
+
+
+
 
 ### 4.4 Experiment 4: Escalabilitat Temporal
 
@@ -1044,5 +1083,10 @@ Veient les nostres gràfiques, podem dir que és cert que l'augment del temps mi
 - $H_{1_b}$: En aquest cas, parlem sobre si la disminució del temps empitjora el benefici. Després de veure les gràfiques és cert que veiem una disminució, però el que més veiem és un augment en la variància, per tant podem dir que, no només empitjora el benefici, sinó que el fa més volàtil.
 
 ### 4.8 Experiment 8: Validació de Resultats (Experiment Especial)
+
+### 4.9 Experiment 9: Generador d'Operadors
+
+
+
 
 ## 5. Conclusions
