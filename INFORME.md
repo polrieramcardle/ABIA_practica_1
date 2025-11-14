@@ -215,6 +215,10 @@ code {
   font-size: 7pt;
 }
 
+.table-container td code {
+  font-size: 7pt;
+}
+
 /* Files alternades (zebra striping) */
 .table-container tbody tr:nth-child(even) {
   background-color: #f5f5f5;
@@ -371,13 +375,112 @@ Hem implementat tres operadors principals:
 
 ### 3.4. La funció heurística
 
-La funció heurística és el criteri que utilitzen els algorismes de cerca local per avaluar la qualitat d'un estat i decidir quins estats explorar a continuació. El rendiment de l'algorisme depèn en gran mesura de la funció heurística utilitzada, ja que aquesta determina quins estats es consideren millors i quins pitjors.
-Nosaltres hem definit la funció heurística com el benefici total obtingut per l'assignació de peticions als camions, que es calcula com els ingressos totals per les peticions ateses menys els costos de transport i les penalitzacions per les peticions no ateses. Aquesta funció heurística ens permet maximitzar el benefici net, que és l'objectiu principal del problema.
+La funció heurística és el criteri que utilitzen els algorismes de cerca local per avaluar la qualitat d'un estat i decidir quins estats explorar a continuació. El rendiment de l'algorisme depèn en gran mesura de la funció heurística utilitzada, ja que aquesta determina quins estats es consideren millors i quins pitjors. En aquest problema de distribució logística, la funció heurística que hem escollit està regida per **maximitzar el benefici total** considerant tres components fonamentals: els ingressos dels serveis prestats, els costos operacionals i les penalitzacions per peticions no ateses.
+
+Els ingressos depenen del preu base $P$ i d'un factor de preu que penalitza les peticions pendents. El factor de preu es defineix com:
+
+$$
+f(d) = \begin{cases}
+1.02 & \text{si } d = 0 \\
+\max(0, 1 - 0.02 \cdot d) & \text{si } d > 0
+\end{cases}
+$$
+
+On $d$ és el nombre de dies que la petició ha estat pendent. Així, el preu efectiu per una petició pendent $d$ dies és $P \cdot f(d)$. Si $S$ és el conjunt de peticions complertes avui, els ingressos totals són:
+
+$$
+I = \sum_{p \in S} P \cdot f(d_p)
+$$
+
+Per que fa als costos operacionals, aquests es basen en la distància recorreguda pels camions des dels centres de distribució fins a les gasolineres i tornada:
+
+La distància entre dues ubicacions es calcula amb la mètrica de Manhattan:
+
+$$
+d((x_1, y_1), (x_2, y_2)) = |x_1 - x_2| + |y_1 - y_2|
+$$
+
+La llargada total d'un viatge depèn del nombre de gasolineres servides. Si se serveix una única gasolinera $G$ des d'un centre $C$:
+
+$$
+L = d(C, G) + d(G, C)
+$$
+
+Si se serveixen dues gasolineres $G_1$ i $G_2$ des d'un centre $C$:
+
+$$
+L = d(C, G_1) + d(G_1, G_2) + d(G_2, C)
+$$
+
+Si el cost per quilòmetre és $C_k$, el cost total $C_t$ per una quantitat de viatges amb llargades $L_i$ serà:
+
+$$
+C_t = C_k \cdot \sum_{i=1}^{t} L_i
+$$
+
+Finalment, les penalitzacions per peticions no ateses es calculen per minimitzar la pèrdua potencial associada a deixar peticions pendents:
+
+Per minimitzar les penalitzacions i maximitzar el benefici, es calcula la pèrdua potencial de deixar peticions sense atendre. El preu d'una petició pendent $d$ dies és $P \cdot f(d)$, però si no s'atén avui, demà el preu serà $P \cdot f(d+1)$. Per tant, la pèrdua potencial per petició $u$ pendent és:
+
+$$
+\Delta_u = P \cdot (f(d) - f(d+1))
+$$
+
+Si $U$ és el conjunt de peticions pendents avui, la penalització total $\text{Pen}$ es pot expressar com:
+
+$$
+\text{Pen} = \sum_{u \in U} P \cdot (f(d_u) - f(d_u + 1))
+$$
+
+Per tant, la funció heurística que avalua la qualitat d'un estat és el benefici total, que combina els tres components anteriors:
+
+$$
+B_{\text{total}} = B - C_t - \text{Pen} = I - C_t - \text{Pen}
+$$
+
+Aquesta funció permet comparar diferents estats durant la cerca local: **estats amb major benefici total es consideren de millor qualitat**. Els algorismes de cerca local utilitzaran aquesta funció per decidir si accepten o rebutgen modificacions proposades pels operadors, sempre buscant maximitzar $B_{\text{total}}$.
+
+La funció heurística escollida per avaluar els estats en aquest problema de cerca local respon a una lògica alineada amb l'objectiu operatiu i econòmic del problema de distribució logística. Aquesta funció suma els ingressos generats per les entregues efectuades, resta el cost total dels desplaçaments realitzats pels vehicles i incorpora una penalització addicional per aquelles peticions que queden pendents, considerant la pèrdua de valor associada al temps d'espera. Això permet reflectir fidelment les prioritats del sistema logístic: maximitzar el benefici real, minimitzar la pèrdua de valor per serveis endarrerits i controlar l'eficiència de l'ús de recursos. En conseqüència, la funció es defineix així
+
+$$
+B_{\text{total}} = \sum_{p \in S} P \cdot f(d_p) - C_k \cdot \sum_{i=1}^{t} L_i - \sum_{u \in U} P \cdot (f(d_u) - f(d_u + 1))
+$$
+
+on $S$ representa les peticions servides avui, $f(d)$ és la reducció del preu per dies de retard, $C_k$ el cost per distància, $L_i$ la llargada del trajecte, i $U$ les peticions pendents.
+
+La justificació d'aquesta formulació es basa en aconseguir un equilibri entre representativitat del problema real i eficiència de càlcul. En primer lloc, el fet d'incloure la penalització progressiva de les peticions pendents ofereix la flexibilitat necessària per prioritzar la satisfacció de les peticions i reduir la pèrdua d'ingressos, la qual cosa és fonamental en el context de distribució on el valor d'una entrega disminueix amb el temps. En segon lloc, la inclusió dels costos de desplaçament permet controlar el recurs vehicle i minimitzar recorreguts poc eficients.
+
+D'altra banda, el cost computacional d'aquesta funció heurística és baix. En detall, el càlcul de la funció heurística per avaluar un estat implica sumar tres components principals:
+
+1. Ingressos totals de les peticions servides ($S$).
+2. Cost total de desplaçament per cada trajecte realitzat ($t$ trajectes).
+3. Penalització per peticions pendents ($U$ peticions pendents).
+
+Analitzem el cost en notació Big-O:
+
+- **Ingressos:** Cal recórrer totes les peticions servides. Si $|S|$ és el nombre de serveis realitzats, el cost és $O(|S|)$.
+- **Costos de desplaçament:** Es calcula la suma de les distàncies dels trajectes. Si hi ha $t$ trajectes, el cost és $O(t)$.
+- **Penalitzacions:** Suma sobre totes les peticions pendents. Si $|U|$ és el nombre de peticions pendents, el cost és $O(|U|)$.
+
+Generalitzant, si $n$ és el nombre total de peticions (tant les fetes com les pendents), podem dir que $|S| + |U| \leq n$, i $t$ (nombre de trajectes) és generalment proporcional a $n$, o com a molt lleugerament superior. Per tant, el *cost total* de calcular la funció heurística per cada estat és:
+
+$$
+O(|S|) + O(t) + O(|U|) = O(n)
+$$
+
+Això significa que **avaluar la funció heurística en un estat té un cost lineal amb el nombre total de peticions**.
+
+La funció heurística, definida com $B_{total} = B - C - Pen$, juga un paper clau en la dinàmica de la cerca local aplicada al problema de rutes de vehicles. Aquesta formulació determina directament quins moviments dins l'espai de solucions són considerats "bons" o "dolents" per l'algorisme, ja que l'avaluació negativa del benefici total ($-B_{total}$) orienta la cerca cap a l'obtenció d'un màxim global del benefici, actuant com a funció objectiu que cal minimitzar.
+
+L'efecte més important d'aquesta funció heurística és que **prioritza aquelles solucions que maximitzen la diferència entre ingressos generats i costos/penalitzacions suportats**. Això fa que la cerca es concentri en aquelles configuracions de rutes que no només serveixen el màxim de dipòsits amb el millor valor possible, sinó que també penalitza explícitament els recorreguts llargs i la manca d'atenció a peticions pendents. En conseqüència, l'algorisme tendeix a crear rutes eficients que aprofiten al màxim el valor de cada servei i, al mateix temps, s'equilibren en cost operatiu i nivell de servei.
+
+En termes pràctics, la funció heurística afecta la **eficiència de la cerca**: per una funció informativa i representativa com aquesta, l'algorisme descarta ràpidament configuracions subòptimes i explora més profundament l'entorn de les solucions que aporten més benefici net. D'aquesta manera, s'evita la recerca exhaustiva de totes les opcions (com passaria en cerca no informada) i es guanya en convergència i qualitat de solució en menys iteracions i temps de càlcul. Si la funció estigués mal ajustada, correria el risc de bloquejar la cerca en òptims locals o avaluar erròniament bones solucions potencials, afectant negativament el resultat final i la velocitat d'exploració.
+
+Finalment, la simplicitat de càlcul de l'heurística $O(n)$, on $n$ és el nombre de peticions, afavoreix que la cerca local pugui fer moltes iteracions en poc temps.
 
 ## 4. Implementació en Python
 
-En aquest apartat expliquem com s'ha immplementat el problema i els algorismes de cerca local en python.
-Tenim 6 arxius principals:
+Hem implementat la representació del problema i els algorismes de cerca local utilitzant Python, aprofitant la biblioteca `aima3` per a la gestió dels algorismes de cerca local. La implementació es divideix en diversos arxius per mantenir el codi organitzat i modular:
 
 - **``camions_estat.py``:** Aquest arxiu conté la implementació de la classe `StateRepresentation`, que representa l'estat del problema. Aquesta classe inclou la implementació de la funció heurística així com totes les funcions auxiliars per a que funcioni correctament, els generadors de les diferents solucions inicials i la generació i aplicació dels operadors de cerca local.
 - **``camions_operadors.py``:** En aquest arxiu implementem la classe `CamionsOperator`, que defineix els operadors de cerca local utilitzats per explorar l'espai d'estats. Aquesta classe inclou la implementació de les classes dels operadors `swapCentres`, `mourePeticio` i `intercanviarPeticions`.
@@ -481,7 +584,7 @@ Aquests hen sigut els resultats obtinguts en l'experiment d'avaluació d'operado
 
 1. **Benefici mitjà i desviació estàndard per a cada conjunt d'operadors**: A la taula podem observar que tots els conjunts d'operadors obtenen un benefici mitjà molt similar, al voltant dels 76.000 euros, amb una desviació estàndard propera als 5.460 euros. Això indica que la qualitat de les solucions és força consistent entre els operadors, i que cap d'ells destaca clarament en termes de benefici final. El fet de que les diferències siguin tan petites suggereix que els operadors no generen espais de cerca radicalment diferents: tots exploren veinats amb característiques similars i acaben trobant solucions comparables.
 
-2. **Temps d'execució mitjà i desviació estàndard per a cada conjunt d'operadors**: El temps mitjà d'execució és el principal factor diferenciador: veiem que l'operador **``swapCentres``** és el més ràpid, amb un temps mitjà d'uns 250 ms, mentre que la combinació de tots tres operadors (**``swapCentres``+``mourePeticio``+``intercanviarPeticions``**) és la més lenta, amb un temps mitjà proper als 270 ms. Això indica que afegir més operadors incrementa el temps d'execució, però no millora significativament la qualitat de les solucions obtingudes.
+2. **Temps d'execució mitjà i desviació estàndard per a cada conjunt d'operadors**: El temps mitjà d'execució és el principal factor diferenciador: veiem que l'operador **``swapCentres``** és el més ràpid, amb un temps mitjà d'uns 250 ms, mentre que la combinació de tots tres operadors (**``swapCentres`` + ``mourePeticio`` + ``intercanviarPeticions``**) és la més lenta, amb un temps mitjà proper als 270 ms. Això indica que afegir més operadors incrementa el temps d'execució, però no millora significativament la qualitat de les solucions obtingudes.
 
 3. **Peticions servides i pendents:** el nombre de peticions servides i pendents és molt similar entre tots els conjunts d'operadors, amb una mitjana d'aproximadament 82 peticions servides i 44 pendents. Això reforça la idea que els diferents operadors no generen solucions radicalment diferents en termes de cobertura de peticions.
 
@@ -568,7 +671,7 @@ A priori,**no podem veure una diferència molt clara entre els resultats de cada
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/2/temps.png" alt="Gràfic de Temps d'Execució vs cada solució inicial">
-    <div class="caption">Figura n: Boxplot de comparació del temps d'execució amb la solució inicial.
+    <div class="caption">Figura 1: Boxplot de comparació del temps d'execució amb la solució inicial.
     </div>
   </div>
 </div>
@@ -578,7 +681,7 @@ En aquest gràfic veiem en cada box-plot les dades d'una solució inicial. La no
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/2/diners.png" alt="Gràfic de ingressos per solució inicial">
-    <div class="caption">Figura n+1: Gràfcs varis de cada solució comparada amb una magnitud monetària.</div>
+    <div class="caption">Figura 2: Gràfcs varis de cada solució comparada amb una magnitud monetària.</div>
   </div>
 </div>
 
@@ -595,11 +698,11 @@ Com a conclusió d'aquest experiment, podem dir que la nostra millor solució in
 
 ### 5.3 Experiment 3: Calibratge de Simulated Annealing
 
-L'objectiu d'aquest experiment és determinar quins paràmetres de l'algorisme de Simulated Annealing (SA) proporcionen el millor rendiment en termes de qualitat de les solucions obtingudes i temps d'execució. En particular, ens centrarem en avaluar l'impacte dels paràmetres d'inicialització de la temperatura, taxa de refredament i nombre d'iteracions per temperatura.
+L'objectiu d'aquest experiment és determinar quins paràmetres de l'algorisme de Simulated Annealing proporcionen el millor rendiment en termes de qualitat de les solucions obtingudes i temps d'execució. En particular, ens centrarem en avaluar l'impacte dels paràmetres d'inicialització de la temperatura, taxa de refredament i nombre d'iteracions per temperatura.
 
 #### 5.3.1 Plantejament del problema
 
-Ens plantegem la següent qüestió de recerca: Com **afecten els paràmetres de Simulated Annealing** (temperatura inicial, taxa de refredament, nombre d'iteracions per temperatura) a la qualitat de les solucions obtingudes i al temps d'execució de l'algorisme?
+Ens plantegem la següent qüestió de recerca: **Com afecten els paràmetres de Simulated Annealing** (temperatura inicial, taxa de refredament, nombre d'iteracions per temperatura) a la qualitat de les solucions obtingudes i al temps d'execució de l'algorisme?
 
 També ens plantegem:
 
@@ -614,26 +717,39 @@ Per a respondre aquestes qüestions, plantegem les següents hipòtesis:
 
 #### 5.3.2 Mètode
 
-Per a resoldre aquesta questió, farem un experiment on definim una graella d'hiperparàmetres, que podem variar depenent del resultat que volguem obtenir. A més hiperparàmetres, més costós serà el  script i més temps trigarà a executar-se. També definim un número de repeticions amb seeds diferents. Per a cada execució, es generen gasolineres i centres amb una llavor específica i es construeix un estat inicial heurístic del problema `CamionsProblema`, mantenint constants els paràmetres operatius per a comparabilitat.
-Per a cada execució es calcula el benefici i es mesura el temps en mil·lisegons; s'emmagatzemen resultats parcials en un fitxer per tolerància a fallades i posterior reprocessament.
-S'agreguen les rèpliques per configuració calculant el benefici mitjà, i es selecciona la configuració amb la mitjana més alta com a millor candidata per a ús operatiu.
+Per a resoldre aquesta questió, començarem dissenyant un experiment de calibratge sistemàtic dels paràmetres de Simulated Annealing, definint una graella de valors per a cada paràmetre, executant múltiples rèpliques per a cada combinació i analitzant el comportament de l'algorisme. En pirmer lloc, fixem la configuració base de 10 centres de distribució amb multiplicitat 1 i 100 gasolineres. Per al Simulated Annealing emprarem un esquema de temperatura exponencial del tipus $T(t) = k \cdot e^{-\lambda t}$, on $k$ és l'escala de la temperatura inicial, $λ$ la taxa de refredament i $t$ el nombre d’iteracions. El nombre d'iteracions de l'algorisme ve determinat pel paràmetre `limit`, que en el nostre cas juga el paper *d'iteracions per temperatur*a del plantejament teòric.
+Per explorar l'efecte dels paràmetres definim una graella de valors:
+
+- `limit` $\in \set{200, 500, 1000}$
+- `k`  $\in \set{1, 10, 20, 50}$
+- `λ` $\in \set{0.001, 0.003, 0.005, 0.01}$
+
+Això ens deixa $3 \times 4 \times 4=48$ configuracions diferents de Simulated Annealing. Per a cada configuració, executarem 10 rèpliques sobre instàncies generades aleatòriament amb diferents seeds. Per a cada execució mesurem:
+
+- El benefici final
+- El temps d'execució
+
+A partir de les 10 rèpliques, calculem la mitjana del benefici, obtenint així una mesura del rendiment per a cada combinació.
+Aquest primer experiment ens permet identificar els paràmmetres amb els que obtenim un major benefici i, comparar per a un mateix `limit`, com influeixen ``k`` i ``λ`` en la qualitat de les solucions.
+
+En una segona fase, escollim la combinació de paràmetres que ha mostrat millor comportament a l’experiment anterior, i analitzem de manera més detallada l’evolució del cost al llarg de les iteracions sobre una instància fixa del problema.
 
 #### 5.3.3 Resultats
 
-Aquests són els resultats de l'execució del script:
+Aquests són els resultats de l'execució dels scripts:
 
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/3/heatmap_limit_200.png" alt="Heatmap de beneficis relatius (limit = 200)">
     <div class="caption">
-      Figura n: Heatmap de beneficis relatius per cada combinació de paràmetres <code>(k, λ)</code> amb <code>limit = 200</code>.
+      Figura 3: Heatmap de beneficis relatius per cada combinació de paràmetres <code>(k, λ)</code> amb <code>limit = 200</code>.
     </div>
   </div>
 
   <div class="image-column">
     <img src="./experiments/resultats/3/heatmap_limit_500.png" alt="Heatmap de beneficis relatius (limit = 500)">
     <div class="caption">
-      Figura n+1: Heatmap de beneficis relatius per cada combinació de paràmetres <math>(k, λ)</math> amb <code>limit = 500</code>.
+      Figura 4: Heatmap de beneficis relatius per cada combinació de paràmetres <math>(k, λ)</math> amb <code>limit = 500</code>.
     </div>
   </div>
 </div>
@@ -642,17 +758,19 @@ Aquests són els resultats de l'execució del script:
   <div class="image-column" style="max-width: 60%;">
     <img src="./experiments/resultats/3/heatmap_limit_1000.png" alt="Heatmap de beneficis relatius (limit = 1000)">
     <div class="caption">
-      Figura n+2: Heatmap de beneficis relatius per cada combinació de paràmetres <math>(k, λ)</math> amb <code>limit = 1000</code>.
+      Figura 5: Heatmap de beneficis relatius per cada combinació de paràmetres <math>(k, λ)</math> amb <code>limit = 1000</code>.
     </div>
   </div>
 </div>
 
-En els heapmaps, podem observar que el benefici mitjà és fora estable dins del rang de paràmetres provat, amb millores modestes quan la temperatura inicial k és baixa i el refredament λ no és excessivament lent, i que augmentar el límit de passos eleva el temps però només aporta guanys marginals de benefici.
+En els heapmaps, podem observar que el benefici mitjà és força estable dins del rang de paràmetres provats, amb millores modestes quan la temperatura inicial ``k`` és baixa i el refredament ``λ`` no és excessivament lent, i que augmentar el límit de passos eleva el temps però només aporta guanys marginals de benefici.
 A continuació, expliquem de forma més detallada l'efecte de cada paràmetre:
 
-- **Efecte de la temperatura inicial:** ``k=1`` sol oferir els valors més alts a cada limit, amb diferències petites però consistents respecte a ``k=10``i ``k=20``, i un descens clar quan ``k=50``, on el benefici cau uns 150–500 € segons la $λ$; aquest patró suggereix que una temperatura inicial massa alta dilata l’exploració i retarda la convergència sense compensar amb millors solucions finals. Entre ``k=10`` i ``k=20`` la diferència és pràcticament nul·la, cosa que apunta a una zona plana de rendiment on el SA és poc sensible al valor exacte dins d’aquest rang.
-- **Efecte de la taxa de refredament:** $λ$ intermedis (0.003–0.005) concentren lleugeríssims màxims en diverses files, mentre que ``λ=0.001`` i ``λ=0.01`` queden lleugerament per sota segons la fila; un $λ$ massa petit manté la temperatura alta durant massa passos i un $λ$ massa gran pot “refredar” massa aviat, congelant l’exploració. Les diferències entre 0.003 i 0.005 són mínimes; qualsevol dels dos és una opció segura amb k petit.
-- **Efecte del límit de passos:** amb el ``limit=200``, tenim una superfície molt plana, amb màxims al voltant de $k \in \set{1,10}$ i $λ \in \set{0.003,0.005}$; és el millor compromís si el temps d’execució és crític, ja que els guanys d’anar a 500 o 1000 són petits. Amb ``límit = 500``, el paisatge es manté molt similar, amb lleugeres pujades per ``k`` baix i $λ$ intermedis; els increments de benefici respecte 200 són modestos. I amb el ``límit = 1000``, apareix el mateix patró i, fins i tot, a ``k=50`` s’observen els pitjors valors relatius; l’augment de passos no transforma el front de solucions, reforçant la idea de rendiments decreixents amb el límit.
+- *Efecte de la temperatura inicial:* `k=1` sol oferir els valors més alts a cada limit, amb diferències petites però consistents respecte a `k=10`i `k=20`, i un descens clar quan `k=50`, on el benefici cau uns 150–500€ segons la $λ$; aquest patró suggereix que una temperatura inicial massa alta dilata l’exploració i retarda la convergència sense compensar amb millors solucions finals. Entre ``k=10`` i `k=20` la diferència és pràcticament nul·la, cosa que apunta a una zona plana de rendiment on el SA és poc sensible al valor exacte dins d’aquest rang.
+
+- *Efecte de la taxa de refredament:* ``λ`` intermedis (0.003–0.005) concentren lleugeríssims màxims en diverses files, mentre que `λ=0.001` i `λ=0.01` queden lleugerament per sota en algunes files i per sobre en altres; un ``λ`` massa petit manté la temperatura alta durant massa passos i un ``λ`` massa gran pot “refredar” massa aviat, congelant l’exploració. Tot i així, observem que l'efecte de la taxa de refredament es quasi nul, i que el benefici està més influenciat per la temperatura inicial.
+
+- *Efecte del límit de passos:* amb el `limit=200`, tenim una superfície molt plana, amb màxims al voltant de $k \in \set{1,10}$ i $λ \in \set{0.003,0.005}$; és el millor compromís si el temps d’execució és crític, ja que els guanys d’anar a 500 o 1000 són petits. Amb ``límit = 500``, el paisatge es manté molt similar, amb lleugeres pujades per ``k`` baix i ``λ`` intermedis; els increments de benefici respecte 200 són modestos. I amb el `límit = 1000`, apareix el mateix patró i, fins i tot, a ``k=50`` s’observen els pitjors valors relatius; l’augment de passos no transforma el front de solucions, reforçant la idea de rendiments decreixents amb el límit.
 
 La sortida final del programa és la seguent:
 
@@ -660,21 +778,35 @@ La sortida final del programa és la seguent:
 Cerca completada. Millor configuració: {'limit': 1000, 'k': 1, 'lam': 0.001, 'mean_benefici': 76140.0, 'raw': [71732.0, 79840.0, 67988.0, 77244.0, 67336.0, 73528.0]}
 ```
 
-Això ens indica els paràmetres pels que l'algorisme funcionarà millor. Veiem que en aquest cas el límit ideal és 1000, la ``k = 1``, ``λ= 0.001``, i amb un benefici mitjà de 76140 euros.
+Això ens indica els paràmetres pels que l'algorisme funcionarà millor. Veiem que en aquest cas el límit ideal és 1000, la ``k = 1``, ``lambda = 0``.001, i amb un benefici mitjà de 76140 euros.
+
+Una vegada seleccionats els millors paràmetres, analitzem el comportament detallat de l'algorisme comparant-lo amb Hill Climbing sobre una instància concreta del problema:
+
+<div class="image-row" style="justify-content: center;">
+  <div class="image-column" style="max-width: 60%;">
+    <img src="./experiments/resultats/3/heatmap_relatiu.jpg" alt="Heatmap de beneficis relatius (limit = 1000)">
+    <div class="caption">
+      Figura 6: Heatmap de beneficis relatius per cada combinació de paràmetres <math>(k, λ)</math> amb <code>limit = 1000</code>.
+    </div>
+  </div>
+</div>
+
+En la part superior de la figura, la corba d’Hill Climbing mostra una disminució quasi monòtona del cost a partir de l’estat inicial, passant aproximadament de -71910 fins a −72040 en només cinc passos, després dels quals el cost es manté estable.​ Això indica que, amb el veïnatge definit, Hill Climbing arriba molt ràpidament a un òptim local des del qual cap veí accessible amb un sol moviment millora el benefici, ja que l’algorisme només fa passos quan troba un estat amb millor valor de la funció objectiu. La part inferior de la figura representa l'evolució del cost per a Simulated Annealing amb els paràmetres calibrats, i es veu que el cost comena en un valor similar al Hill Climbing, però que només millora lleugerament cap al pas 20, on baixa uns pocs punts fins a un valor aproximat de -71940.
+A partir d’aquest punt, la corba resta pràcticament horitzontal al llarg de les primeres 100 iteracions representades, cosa que indica que l’algorisme ja no troba moviments que millorin el cost o bé que la temperatura ja és prou baixa com perquè la probabilitat d’acceptar moviments pitjors sigui molt reduïda. Comparant amb Hill Climbing, s’observa que el cost final de Simulated Annealing és clarament superior (menys negatiu) al d’Hill Climbing, fet que implica un benefici total menor malgrat utilitzar uns paràmetres de Simmulated Annealing que, en mitjana, havien resultat els millors en l’experiment de graella.
 
 #### 5.3.4 Conclusions
 
 A partir de l'experiment, podem extreure les seguents conclusions:
 
-1. El benefici mitjà obtingut mostra una baixa sensibilitat als hiperparàmetres provats: dins dels rangs testats, ni ``k`` (temperatura inicial) ni ``λ`` (taxa de refredament) ni el nombre d’iteracions (limit) produeixen canvis radicals en la qualitat final de les solucions. Les diferències observades són discretes, i la superfície de resultats és relativament plana. Això suporta parcialment la hipòtesi nul·la $H_0$.
+1. El benefici mitjà obtingut mostra una baixa sensibilitat als hiperparàmetres provats: dins dels rangs testats, ni `k` (temperatura inicial) ni `λ` (taxa de refredament) ni el nombre d’iteracions (limit) produeixen canvis radicals en la qualitat final de les solucions. Les diferències observades són discretes, i la superfície de resultats és relativament plana. Això suporta parcialment la hipòtesi nul·la $H_0$.
 
-2. Quan s’explora en rangs més alts (ex. ``k=50``), la qualitat decreix lleugerament, indicant que una temperatura inicial massa elevada allarga l’exploració, sense aportar millores significatives, mentre que valors moderats (``k=1``,``k=10``,``k=20``) afavoreixen una convergència eficient.
+2. Quan s’explora en rangs més alts (ex. `k=50`), la qualitat decreix lleugerament, indicant que una temperatura inicial massa elevada allarga l’exploració, sense aportar millores significatives, mentre que valors moderats (`k=1`,`k=10`,`k=20`) afavoreixen una convergència eficient.
 
-3. El paràmetre amb més impacte en la qualitat és la temperatura inicial ``k``, sempre que es mantingui en valors baixos, i en segon terme, la taxa de refredament ``λ``: combinacions de ``k`` baix (1 o 10) i ``λ`` intermedi (0.003–0.005) donen els millors resultats de la sèrie; no s’observen avantatges en límit més alt (més iteracions) llevat d’una lleugera millora marginal, però el cost temporal creix exponencialment per un guany poc rellevant.
+3. El paràmetre amb més impacte en la qualitat és la temperatura inicial `k`, sempre que es mantingui en valors baixos, i en segon terme, la taxa de refredament ``λ``: combinacions de ``k` baix (1 o 10) i `λ` intermedi (0.003–0.005) donen els millors resultats de la sèrie; no s’observen avantatges en límit més alt (més iteracions) llevat d’una lleugera millora marginal, però el cost temporal creix exponencialment per un guany poc rellevant.
 
-4. El límit d’iteracions (``limit``) té un impacte directe sobre el temps d’execució: el temps augmenta de forma notable entre ``limit=200`` i ``limit=1000``, però la millora de benefici és insignificant. Per tant, la configuració més eficient és utilitzar ``limit=200`` en combinació amb ``k`` baix i ``λ`` intermedi, maximitzant el benefici per unitat de temps i complint la hipòtesi $H_{1_b}$.
+4. El límit d’iteracions (`limit`) té un impacte directe sobre el temps d’execució: el temps augmenta de forma notable entre `limit=200` i `limit=1000`, però la millora de benefici és insignificant. Per tant, la configuració més eficient és utilitzar ``limit=200` en combinació amb `k` baix i `λ` intermedi, maximitzant el benefici per unitat de temps i complint la hipòtesi $H_{1_b}$.
 
-Per tant, podem concloure dient que els paràmetres que utilitzem no són rellevants en el resultat obtingut en executar l'algorisme (el benefici). Però, hem pogut veure com al augmentar el nombre d'iteracions, el benefici s'ha mantingut pràcticament igual però el temps d'execució ha augmentat. Per tant, podem rebutjar la hipòtesis nul·la i acceptar $H_{1_b}$.
+Per tant, podem concloure dient que els paràmetres que utilitzem no són rellevants en el resultat obtingut en executar l'algorisme (el benefici). Però, hem pogut veure com al augmentar el nombre d'iteracions, el benefici s'ha mantingut pràcticament constant però el temps d'execució ha augmentat. Per tant, podem rebutjar la hipòtesis nul·la i acceptar $H_{1_b}$.
 
 ### 5.4 Experiment 4: Escalabilitat Temporal
 
@@ -803,7 +935,7 @@ Cal tenir en compte que els paràmetres de Simulated Annealing s'han fixat als v
     </tbody>
   </table>
   <div class="table-caption">
-    Taula 1: Resultats de l'experiment d'escalabilitat. Comparació del temps d'execució (ms) i benefici (€) entre Hill Climbing (HC) i Simulated Annealing (SA) segons la mida del problema. Valors mostren mitjana ± desviació estàndard de 3 rèpliques amb seeds 1234, 1235 i 1236.
+    Taula 3: Resultats de l'experiment d'escalabilitat. Comparació del temps d'execució (ms) i benefici (€) entre Hill Climbing (HC) i Simulated Annealing (SA) segons la mida del problema. Valors mostren mitjana ± desviació estàndard de 3 rèpliques amb seeds 1234, 1235 i 1236.
   </div>
 </div>
 
@@ -816,7 +948,7 @@ Anàlisi del temps d'execució segons l'algorisme:
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/4/experiment_escalabilitat_log.png" alt="Gràfic de Temps d'Execució vs Mida del Problema">
-    <div class="caption">Figura n: Log-temps d'execució (ms) en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).
+    <div class="caption">Figura 7: Log-temps d'execució (ms) en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).
     </div>
   </div>
 </div>
@@ -832,7 +964,7 @@ Anàlisi segons la mida del problema:
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/4/experiment_escalabilitat.png" alt="Gràfic de Temps d'Execució vs Mida del Problema">
-    <div class="caption">Figura n+1: Gràfcs varis en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).</div>
+    <div class="caption">Figura 8: Gràfcs varis en funció de la mida del problema per Hill Climbing (HC) i Simulated Annealing (SA).</div>
   </div>
 </div>
 
@@ -947,7 +1079,7 @@ Després de les 10 execucions per a cada configuració, amb seeds del els result
     </tbody>
   </table>
   <div class="table-caption">
-    Taula 1: Comparació de resultats entre configuracions de 5 centres vs 10 centres amb 10 camions i 100 gasolineres. Els valors mostren la mitjana de 10 execucions amb seeds del 1234 al 1243.
+    Taula 4: Comparació de resultats entre configuracions de 5 centres vs 10 centres amb 10 camions i 100 gasolineres. Els valors mostren la mitjana de 10 execucions amb seeds del 1234 al 1243.
   </div>
 </div>
 
@@ -1038,7 +1170,7 @@ Després d'executar el codi per fer l'experiment, els resultats obtinguts són e
     </tbody>
   </table>
   <div class="table-caption">
-    Taula 7: Resultats de l'experiment per cada escenari (mitjanes de 10 rèpliques).
+    Taula n + 1: Resultats de l'experiment per cada escenari (mitjanes de 10 rèpliques).
     Comparació dels ingressos, costos, penalitzacions, beneficis i percentatge de peticions servides.
   </div>
 </div>
@@ -1048,7 +1180,7 @@ A la taula podem anar veient un augment en certes magnituds, ja que al tenir mé
 <div class="image-row">
   <div class="image-column">
     <img src="./experiments/resultats/7/exp7.png" alt="Boxplots de representació de la taula">
-    <div class="caption">Figura n: Boxplots de les mitjanes de 10 rèpliques de cada escenari de ingressos, % peticions, costos i benefici.</div>
+    <div class="caption">Figura n + 1: Boxplots de les mitjanes de 10 rèpliques de cada escenari de ingressos, % peticions, costos i benefici.</div>
   </div>
 </div>
 
@@ -1087,7 +1219,7 @@ A partir dels resultats de l'[Experiment 1](#51-experiment-1-selecció-doperador
     </tbody>
   </table>
   <div class="table-caption">
-    Taula 1: Resultats de l'experiment de validació utilitzant només l'operador <code>swapCentres</code> amb Hill Climbing i inicialització greedy.
+    Taula n + 2: Resultats de l'experiment de validació utilitzant només l'operador <code>swapCentres</code> amb Hill Climbing i inicialització greedy.
   </div>
 
 Aquí podem veure que utilitzant només l'operador ``swapCentres`` amb Hill Climbing i inicialització greedy, s'obté un benefici mitjà de **76,344.40€** amb un temps d'execució mitjà de **10.81 ms** per a un problema de 10 centres i 100 gasolineres. Aquesta configuració proporciona un benefici lleugerament inferior al de l'Experiment 4 (78,905.33€), on s'utilitzen ambdós operadors, però encara així es manté en un rang alt de qualitat de solució. El temps d'execució és també raonable, tot i ser una mica més alt que l'Experiment 4 (4.71 ms), probablement degut a la menor flexibilitat en l'exploració de l'espai de solucions.
