@@ -2,7 +2,6 @@
 
 Aquest projecte correspon a la **Pràctica de Búsqueda Local** de l’assignatura *Algorismes Bàsics per la Intel·ligència Artificial (ABIA)* del grau en Intel·ligència Artificial de la UPC. L’objectiu és aplicar tècniques de **cerca local** per resoldre un problema de **planificació de rutes de distribució de combustible**, on diverses cisternes han d’abastir un conjunt de gasolineres de manera eficient.
 
-
 ## 🧠 Objectius
 
 ---
@@ -38,7 +37,7 @@ En conjunt, el treball combina la **formulació formal d’un problema d’optim
 
 ---
 
-## Dependències
+## 📦 Dependències
 
 Aquest projecte s’ha desenvolupat en **Python 3.12+** i requereix les següents llibreries:
 
@@ -56,10 +55,31 @@ Per instal·lar totes les dependències necessàries:
 ```bash
 pip install numpy matplotlib pandas aima3
 ```
+---
+
+## 🚀 Ús
+
+**ATENCIÓ**: En favor de l'organització del projecte, tot el codi d'implementació i els experiments es troben a la carpeta `implementacio/` i `experiments/` respectivament com a __paquets de Python__. Assegureu-vos d'executar els scripts des de la carpeta arrel i seguint la següent comanda:
+
+```bash
+python -m paquet.script
+```
+
+Per exemple, per executar l'script de l'experiment 3:
+
+```bash
+python -m experiments.experiments3
+```
+
+O per executar el problema principal:
+
+```bash
+python -m implementacio.camions
+```
 
 ---
 
-## Autors
+## 👥 Autors
 
 - Ferran Òdena
 - Carlos Palazón  

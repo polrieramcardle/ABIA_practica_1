@@ -8,15 +8,18 @@ import csv
 import matplotlib.pyplot as plt
 import copy
 
+
 # ========================================
 # EXPERIMENT 4: ESCALABILITAT
 # ========================================
 # Estudiar l'evolució del temps d'execució amb la mida del problema
 # Proporció 10:100 (centres:gasolineres)
 
+
 # Configuració de l'experiment
 seed = 1234  # Seed fix per reproducibilitat
 n_repliques = 3  # Nombre de rèpliques per cada mida (per fer mitjana)
+
 
 # Paràmetres del problema (constants)
 KM_MAX = 640
@@ -25,22 +28,27 @@ VALOR_DIPOSITIT = 1000
 COST_KM = 2
 MULTIPLICITAT = 1  # Camions per centre
 
+
+# Paràmetres òptims de Simulated Annealing (obtinguts de l'Experiment 3)
+SA_LIMIT = 1000
+SA_K = 1
+SA_LAMBDA = 0.001
+
+
 # Mides del problema a provar (centres:gasolineres en proporció 10:100)
+# Reduït a 5 mides per optimitzar el temps d'execució
 mides = [
     (10, 100),
     (20, 200),
     (30, 300),
     (40, 400),
     (50, 500),
-    (60, 600),
-    (70, 700),
-    (80, 800),
-    (90, 900),
-    (100, 1000),
 ]
+
 
 # Emmagatzemar resultats
 resultats = []
+
 
 print("=" * 80)
 print("EXPERIMENT 4: ESCALABILITAT - TEMPS D'EXECUCIÓ vs MIDA DEL PROBLEMA")
@@ -48,7 +56,9 @@ print("=" * 80)
 print(f"Proporció centres:gasolineres = 10:100")
 print(f"Nombre de rèpliques per mida: {n_repliques}")
 print(f"Seed: {seed}")
+print(f"Paràmetres SA: limit={SA_LIMIT}, k={SA_K}, lambda={SA_LAMBDA}")
 print("=" * 80)
+
 
 for num_centres, num_gasolineres in mides:
     print(f"\nProcessant mida: {num_centres} centres, {num_gasolineres} gasolineres...")
@@ -77,7 +87,7 @@ for num_centres, num_gasolineres in mides:
         initial_state_base = generate_greedy_initial_state(params)
         
         # ========================================
-        # CREAR CÒPIES INDEPENDENTS ← AQUÍ!
+        # CREAR CÒPIES INDEPENDENTS
         # ========================================
         initial_state_hc = copy.deepcopy(initial_state_base)
         initial_state_sa = copy.deepcopy(initial_state_base)
@@ -101,11 +111,19 @@ for num_centres, num_gasolineres in mides:
         benefici_hc_list.append(benefici_hc)
         
         # ========================================
-        # SIMULATED ANNEALING
+        # SIMULATED ANNEALING amb paràmetres òptims
         # ========================================
         problema_sa = CamionsProblema(initial_state_sa)
+
+        # Crear funció de schedule que retorna 0 després de SA_LIMIT iteracions
+        def sa_schedule(t):
+            if t > SA_LIMIT:
+                return 0  # Això farà que l'algorisme s'aturi
+            temp = SA_K * (SA_LAMBDA ** t)
+            return temp if temp > 0.01 else 0
+
         temps_inici_sa = time.perf_counter()
-        solucio_sa = simulated_annealing(problema_sa)
+        solucio_sa = simulated_annealing(problema_sa, schedule=sa_schedule)
         temps_final_sa = time.perf_counter()
         temps_sa = (temps_final_sa - temps_inici_sa) * 1000  # ms
         
@@ -119,6 +137,7 @@ for num_centres, num_gasolineres in mides:
         benefici_sa_list.append(benefici_sa)
         
         print(f"  Rèplica {replica + 1}/{n_repliques} completada")
+    
     # Calcular mitjanes i desviacions estàndard
     temps_hc_mitjana = sum(temps_hc_list) / len(temps_hc_list)
     temps_sa_mitjana = sum(temps_sa_list) / len(temps_sa_list)
@@ -149,6 +168,7 @@ for num_centres, num_gasolineres in mides:
     print(f"  -> HC: {temps_hc_mitjana:.2f} ± {temps_hc_std:.2f} ms, Benefici: {benefici_hc_mitjana:.2f} ± {benefici_hc_std:.2f} €")
     print(f"  -> SA: {temps_sa_mitjana:.2f} ± {temps_sa_std:.2f} ms, Benefici: {benefici_sa_mitjana:.2f} ± {benefici_sa_std:.2f} €")
 
+
 # ========================================
 # MOSTRAR RESULTATS FINALS
 # ========================================
@@ -158,6 +178,7 @@ print("=" * 80)
 print(f"{'Centres':<10} {'Gasolineres':<12} {'HC Temps (ms)':<18} {'SA Temps (ms)':<18} {'HC Benefici (€)':<20} {'SA Benefici (€)':<20}")
 print("-" * 80)
 
+
 for r in resultats:
     print(f"{r['num_centres']:<10} {r['num_gasolineres']:<12} "
           f"{r['temps_hc_ms']:<10.2f}±{r['temps_hc_std']:<6.2f} "
@@ -165,7 +186,9 @@ for r in resultats:
           f"{r['benefici_hc']:<10.2f}±{r['benefici_hc_std']:<8.2f} "
           f"{r['benefici_sa']:<10.2f}±{r['benefici_sa_std']:<8.2f}")
 
+
 print("=" * 80)
+
 
 # ========================================
 # GUARDAR RESULTATS EN CSV
@@ -180,7 +203,9 @@ with open('experiment_escalabilitat.csv', 'w', newline='') as csvfile:
     for r in resultats:
         writer.writerow(r)
 
+
 print("\nResultats guardats a: experiment_escalabilitat.csv")
+
 
 # ========================================
 # ANÀLISI DE TENDÈNCIES
@@ -188,6 +213,7 @@ print("\nResultats guardats a: experiment_escalabilitat.csv")
 print("\n" + "=" * 80)
 print("ANÀLISI DE TENDÈNCIES")
 print("=" * 80)
+
 
 # Calcular ràtio de creixement del temps
 if len(resultats) >= 2:
@@ -224,12 +250,40 @@ if len(resultats) >= 2:
     else:
         print(f"  - Simulated Annealing: Superior a quadràtica")
 
+
+# Avaluar si els paràmetres de SA es mantenen adequats
+print(f"\n" + "=" * 80)
+print("AVALUACIÓ DELS PARÀMETRES DE SIMULATED ANNEALING")
 print("=" * 80)
+print(f"Paràmetres utilitzats: limit={SA_LIMIT}, k={SA_K}, lambda={SA_LAMBDA}")
+print(f"\nComparació benefici SA vs HC per mida:")
+for r in resultats:
+    diff_percentatge = ((r['benefici_sa'] - r['benefici_hc']) / r['benefici_hc']) * 100
+    if abs(diff_percentatge) < 1:
+        qualitat = "Equivalent"
+    elif diff_percentatge > 0:
+        qualitat = f"SA millor (+{diff_percentatge:.2f}%)"
+    else:
+        qualitat = f"HC millor ({diff_percentatge:.2f}%)"
+    print(f"  {r['num_centres']} centres: {qualitat}")
+
+print(f"\nConclusió: Els paràmetres de SA ", end="")
+# Verificar si SA manté bons resultats en totes les mides
+sa_millor_count = sum(1 for r in resultats if r['benefici_sa'] >= r['benefici_hc'] * 0.99)
+if sa_millor_count >= len(resultats) * 0.8:
+    print("es mantenen adequats en augmentar la mida del problema.")
+else:
+    print("podrien necessitar ajustaments per a problemes més grans.")
+
+
+print("=" * 80)
+
 
 # ========================================
 # GENERAR GRÀFICS
 # ========================================
 print("\nGenerant gràfics...")
+
 
 # Extreure dades per graficar
 centres_list = [r['num_centres'] for r in resultats]
@@ -242,8 +296,10 @@ benefici_hc_std_list = [r['benefici_hc_std'] for r in resultats]
 benefici_sa_list = [r['benefici_sa'] for r in resultats]
 benefici_sa_std_list = [r['benefici_sa_std'] for r in resultats]
 
+
 # Crear figura amb 4 subgràfics
 fig, axes = plt.subplots(2, 2, figsize=(14, 11))
+
 
 # Gràfic 1: Temps d'execució
 ax1 = axes[0, 0]
@@ -257,6 +313,7 @@ ax1.set_title('Escalabilitat: Temps d\'execució vs Mida del problema', fontsize
 ax1.legend(fontsize=11)
 ax1.grid(True, alpha=0.3)
 
+
 # Gràfic 2: Benefici
 ax2 = axes[0, 1]
 ax2.errorbar(centres_list, benefici_hc_list, yerr=benefici_hc_std_list,
@@ -269,6 +326,7 @@ ax2.set_title('Escalabilitat: Benefici vs Mida del problema', fontsize=14, fontw
 ax2.legend(fontsize=11)
 ax2.grid(True, alpha=0.3)
 
+
 # Gràfic 3: Ràtio SA/HC en temps
 ax3 = axes[1, 0]
 ratio_temps = [sa / hc for sa, hc in zip(temps_sa_list, temps_hc_list)]
@@ -279,6 +337,7 @@ ax3.set_ylabel('Ràtio SA/HC', fontsize=12)
 ax3.set_title('Ràtio de temps SA/HC', fontsize=14, fontweight='bold')
 ax3.legend(fontsize=11)
 ax3.grid(True, alpha=0.3)
+
 
 # Gràfic 4: Diferència de benefici SA - HC
 ax4 = axes[1, 1]
@@ -291,9 +350,11 @@ ax4.set_ylabel('Diferència de benefici (SA - HC) en €', fontsize=12)
 ax4.set_title('Diferència de benefici: SA vs HC', fontsize=14, fontweight='bold')
 ax4.grid(True, alpha=0.3, axis='y')
 
+
 plt.tight_layout()
 plt.savefig('experiment_escalabilitat.png', dpi=300, bbox_inches='tight')
 print("Gràfics guardats a: experiment_escalabilitat.png")
+
 
 # Gràfic addicional: Temps en escala logarítmica (per veure millor la tendència)
 plt.figure(figsize=(10, 6))
@@ -307,7 +368,9 @@ plt.grid(True, alpha=0.3)
 plt.savefig('experiment_escalabilitat_log.png', dpi=300, bbox_inches='tight')
 print("Gràfic logarítmic guardat a: experiment_escalabilitat_log.png")
 
+
 plt.show()
+
 
 print("\n" + "=" * 80)
 print("EXPERIMENT COMPLETAT!")
