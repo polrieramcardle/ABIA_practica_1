@@ -1,119 +1,131 @@
 from aima3.search import hill_climbing
-from implementacio.camions_problema import CamionsProblema
-from implementacio.camions_parametres import ProblemParameters
-from implementacio.camions_estat import generate_greedy_initial_state, generate_initial_state, generate_empty_initial_state
-from implementacio.abia_Gasolina import Gasolineres, CentresDistribucio
-import time
+from camions_problema import CamionsProblema
+from camions_parametres import ProblemParameters
+from abia_Gasolina import Gasolineres, CentresDistribucio
+from camions_estat import StateRepresentation
+import numpy as np
+import matplotlib.pyplot as plt
 
-# ========================================
-# EXPERIMENT 6
-# ========================================
-# Configuració segons l'enunciat:
-# - 10 centres de distribució
-# - 1 camió per centre (multiplicitat = 1)
-# - 100 gasolineres
-# - Seed 1234 per gasolineres i centres
+# Paràmetres escenari base
+km_max = 640
+n_viatges = 5
+valor = 1000
+num_camions = 10
+num_gasolineres = 100
+multiplicitat = 1
 
-# Generar les dades del problema amb seed 1234
-gasolineres = Gasolineres(num_gasolineres=100, seed=1234)
-centres = CentresDistribucio(num_centres=10, multiplicitat=1, seed=1234)
+cost_kms = [2*(2**i) for i in range(6)]
+seeds = [1234 + i for i in range(10)]
 
-# Paràmetres del problema (segons els  teus experiments)
-params = ProblemParameters(
-    km=640,           # Màxim km per camió
-    n_viatges=5,      # Màxim viatges per camió
-    valor=1000,       # Valor base del dipòsit (€)
-    cost_km=2,        # Cost per km recorregut (€/km) --> Això és el que s'ha d'anar canviant
-    gasolineres=gasolineres,
-    centres=centres
-)
+def generate_greedy_state_limit(params: ProblemParameters):
+    estat = StateRepresentation(params)
+    num_camions = len(params.centres.centres)
+    num_peticions = len(estat.peticions_info)
+    for i_peticio in range(num_peticions):
+        id_gas = estat.gasolinera_per_peticio[i_peticio]
+        gas = params.gasolineres.gasolineres[id_gas]
+        coords_peticio = (gas.cx, gas.cy)
+        dies_pendents = estat.peticions_info[i_peticio]
+        factor = estat._factor_de_preu(dies_pendents)
+        preu_peticio = params.valor * factor
+        millor_camio = None
+        millor_distancia = float("inf")
+        millor_viatge_nou = False
+        millor_cost_total = float("inf")
+        for id_camio in range(num_camions):
+            centre = params.centres.centres[id_camio]
+            coords_centre = (centre.cx, centre.cy)
+            distancia = estat._manhattan(coords_peticio, coords_centre)
+            camio_viatges = estat.camions[id_camio]
+            afegir_com_nou = (not camio_viatges or len(camio_viatges[-1]) >= 2)
+            num_viatges = len(camio_viatges) + (1 if afegir_com_nou else 0)
+            km_camio = sum(estat._calcular_km_viatge(id_camio, v) for v in camio_viatges)
+            km_viatge_nou = estat._manhattan(coords_centre, coords_peticio) * 2 if afegir_com_nou else \
+                estat._calcular_km_viatge(id_camio, camio_viatges[-1] + [i_peticio])
+            cost_nou = params.cost_km * km_viatge_nou
+            if num_viatges <= params.n_viatges and km_camio + km_viatge_nou <= params.km:
+                if preu_peticio >= cost_nou:
+                    if distancia < millor_distancia:
+                        millor_camio = id_camio
+                        millor_distancia = distancia
+                        millor_viatge_nou = afegir_com_nou
+                        millor_cost_total = cost_nou
+        if millor_camio is not None:
+            camio_viatges = estat.camions[millor_camio]
+            if millor_viatge_nou:
+                camio_viatges.append([i_peticio])
+            else:
+                camio_viatges[-1].append(i_peticio)
+    return estat
 
-# ============================================
-# TRIAR LA MILLOR INICIALITZACIÓ DELS EXPERIMENTS 1 i 2
-# ============================================
-# Segons els teus resultats dels experiments, descomenta la línia adequada:
+resultats = {cost_km: [] for cost_km in cost_kms}
+pendents_temps = {cost_km: [] for cost_km in cost_kms}
+benefici = {cost_km: [] for cost_km in cost_kms}
 
-# Opció 1: Inicialització buida (empty)
-# initial_state = generate_empty_initial_state(params)
+for cost_km in cost_kms:
+    for seed in seeds:
+        gasolineres = Gasolineres(num_gasolineres=num_gasolineres, seed=seed)
+        centres = CentresDistribucio(num_centres=num_camions, multiplicitat=multiplicitat, seed=seed)
+        params = ProblemParameters(
+            km=km_max,
+            n_viatges=n_viatges,
+            valor=valor,
+            cost_km=cost_km,
+            gasolineres=gasolineres,
+            centres=centres,
+        )
+        initial_state = generate_greedy_state_limit(params)
+        problema = CamionsProblema(initial_state)
+        solucio = hill_climbing(problema)
+        peticions_servides = sum([len([item for viatge in camio for item in viatge]) for camio in solucio.camions])
+        peticions_totals = len(solucio.peticions_info)
+        percentatge = 100 * peticions_servides / peticions_totals if peticions_totals > 0 else 0
+        dies_pendents_servits = []
+        for camio in solucio.camions:
+            for viatge in camio:
+                for idx in viatge:
+                    dies_pendents_servits.append(solucio.peticions_info[idx])
+        hist = np.histogram(dies_pendents_servits, bins=[-0.5,0.5,1.5,2.5,3.5,100], density=True)[0]
+        resultats[cost_km].append(percentatge)
+        pendents_temps[cost_km].append(hist)
+        # Calcula benefici
+        ingressos = solucio.calcular_ingressos_servits()
+        cost = solucio.calcular_cost_km()
+        penalitzacio = solucio.calcular_penalitzacio_pendents()
+        penalitzacio_km = 0
+        for id_camio, camio in enumerate(solucio.camions):
+            km_camio = sum(solucio._calcular_km_viatge(id_camio, v) for v in camio)
+            if km_camio > km_max:
+                penalitzacio_km += (km_camio - km_max) * 10
+        benefici_this = ingressos - cost - penalitzacio - penalitzacio_km
+        benefici[cost_km].append(benefici_this)
 
-# Opció 2: Inicialització ordenada per prioritat (random)
-# initial_state = generate_initial_state(params)
+print("Cost/km | %Servides |  Benefici")
+print("-------------------------------")
+for cost_km in cost_kms:
+    pct = np.mean(resultats[cost_km])
+    mitja_benefici = np.mean(benefici[cost_km])
+    print(f"{cost_km:6}  | {pct:8.2f}  | {mitja_benefici:9.2f}")
 
-# Opció 3: Inicialització greedy (la més comuna si va donar bons resultats)
-initial_state = generate_greedy_initial_state(params)
 
-# Crear el problema
-problema = CamionsProblema(initial_state)
+cost_labels = [str(c) for c in cost_kms]
+# Boxplot % servides
+plt.figure(figsize=(8, 5))
+dades_servides = [resultats[c] for c in cost_kms]
+plt.boxplot(dades_servides, labels=cost_labels, patch_artist=True)
+plt.title("% Peticions servides vs Cost/km")
+plt.ylabel("% Peticions servides")
+plt.xlabel("Cost/km")
+plt.grid(axis="y", linestyle="--", alpha=0.5)
+plt.show()
 
-# Mesurar el temps d'execució en mil·lisegons
-temps_inici = time.perf_counter()
-
-# Executar Hill Climbing (segons els teus experiments)
-solucio = hill_climbing(problema)
-
-# Temps final
-temps_final = time.perf_counter()
-temps_ms = (temps_final - temps_inici) * 1000  # Convertir a mil·lisegonds
-
-# Calcular el benefici de la solució
-# Benefici = Ingressos - Cost dels km - Penalització
-ingressos = solucio.calcular_ingressos_servits()
-cost_km = solucio.calcular_cost_km()
-penalitzacio = solucio.calcular_penalitzacio_pendents()
-
-# Benefici total segons l'enunciat:
-# "El beneficio lo mediremos como lo ganado con las peticiones que se sirven, 
-#  menos el coste de los kilómetros recorridos"
-benefici = ingressos - cost_km - penalitzacio
-
-# Calcular altres mètriques útils
-peticions_servides_set = solucio._get_peticions_servides()
-peticions_servides = len(peticions_servides_set)
-peticions_totals = len(solucio.peticions_info)
-peticions_pendents = peticions_totals - peticions_servides
-
-# Calcular km totals
-km_totals = 0.0
-for id_camio, camio in enumerate(solucio.camions):
-    for viatge in camio:
-        km_totals += solucio._calcular_km_viatge(id_camio, viatge)
-
-# Mostrar els resultats per enviar al professor
-print("=" * 70)
-print("EXPERIMENT ESPECIAL - RESULTATS FINALS")
-print("=" * 70)
-print(f"\nConfiguració del problema:")
-print(f"  - Centres de distribució: 10")
-print(f"  - Camions per centre: 1")
-print(f"  - Total camions: 10")
-print(f"  - Gasolineres: 100")
-print(f"  - Seed: 1234")
-print(f"\n{'='*70}")
-print(f"BENEFICI OBTINGUT: {benefici:.2f} €")
-print(f"TEMPS D'EXECUCIÓ: {temps_ms:.2f} ms")
-print(f"{'='*70}")
-print(f"\nDetall del càlcul del benefici:")
-print(f"  + Ingressos per peticions servides: {ingressos:.2f} €")
-print(f"  - Cost dels km recorreguts: {cost_km:.2f} €")
-print(f"  - Penalització per peticions pendents: {penalitzacio:.2f} €")
-print(f"  {'─'*50}")
-print(f"  = BENEFICI TOTAL: {benefici:.2f} €")
-print("=" * 70)
-
-# Informació addicional (opcional, per verificar)
-print(f"\nInformació addicional de la solució:")
-print(f"  - Peticions servides: {peticions_servides}/{peticions_totals}")
-print(f"  - Peticions pendents: {peticions_pendents}")
-print(f"  - Km totals recorreguts: {km_totals:.2f} km")
-
-# Per verificar l'execució al laboratori
-print(f"\n{'='*70}")
-print("RESUM PER ENVIAR AL PROFESSOR:")
-print(f"{'='*70}")
-print(f"Benefici: {benefici:.2f} €")
-print(f"Temps: {temps_ms:.2f} ms")
-print(f"{'='*70}")
-
-# Opcional: mostra la solució completa per debugar
-# print("\n" + str(solucio))
+# Boxplot benefici
+plt.figure(figsize=(8, 5))
+dades_benefici = [benefici[c] for c in cost_kms]
+plt.boxplot(dades_benefici, labels=cost_labels, patch_artist=True)
+plt.title("Benefici vs Cost/km")
+plt.ylabel("Benefici (€)")
+plt.xlabel("Cost/km")
+plt.grid(axis="y", linestyle="--", alpha=0.5)
+plt.show()
 
